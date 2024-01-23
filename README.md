@@ -3,21 +3,14 @@
 
 ## Building
 
-You can build using the Microsoft Visual Studio Build Tools:
+You can build using the Microsoft Visual Studio Build Tools console:
 
-Making the main executable:
+You can use the nmake command which will build according to the make file
 
-```cl wm.c user32.lib```
-
-Making the DLL:
-
-```cl /c wm_dll.c```
-
-```link wm_dll.obj user32.lib /dll```
+```nmake```
 
 ## Todo
 
 - Add proper error handling and cleanup
-- Add make file
 - Add keyboard navigation
 - Add workspaces
