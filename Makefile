@@ -2,9 +2,9 @@ CC = cl
 LD = link
 
 EXEC = wm.exe
-DLL = wm.dll
+DLL = wm_dll.dll
 
-#Boiler plate
+# Boiler plate
 CFLAGS  =
 LDFLAGS =
 
