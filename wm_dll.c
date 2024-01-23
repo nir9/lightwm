@@ -8,6 +8,10 @@ BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lparam) {
         return TRUE;
     }
 
+    if (currentManagedIndex > 255) {
+        return FALSE;
+    }
+
     managed[currentManagedIndex] = hwnd;
     currentManagedIndex++;
     return TRUE;
