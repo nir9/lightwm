@@ -1,12 +1,12 @@
-CC := cl
-LD := link
+CC = cl
+LD = link
 
-EXEC := wm.exe
-DLL := wm.dll
+EXEC = wm.exe
+DLL = wm.dll
 
 #Boiler plate
-CFLAGS  :=
-LDFLAGS :=
+CFLAGS  =
+LDFLAGS =
 
 all: $(DLL) $(EXEC)
 
