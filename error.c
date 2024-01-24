@@ -18,7 +18,7 @@ void reportWin32Error(wchar_t* message) {
 	MessageBoxW(
 		NULL, 
 		dialogMsgBuff, 
-		L"Error", 
+		L"LightWM Error", 
 		MB_OK | MB_ICONSTOP
 	); 
 }
