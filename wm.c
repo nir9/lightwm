@@ -40,8 +40,8 @@ int main() {
     Sleep(INFINITE);
 
     cleanup:
-        if (shellProc) {
-            FreeLibrary(shellProc);
+        if (wm_dll) {
+            FreeLibrary(wm_dll);
         }
 
         if (hookHandle) {
