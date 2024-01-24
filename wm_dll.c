@@ -12,6 +12,20 @@ BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lparam) {
 		return FALSE;
 	}
 
+	if (GetWindowTextLengthW(hwnd) == 0) {
+		return TRUE;
+	}
+
+	RECT clientRect;
+	if (!GetClientRect(hwnd, &clientRect)) {
+		return TRUE;
+	}
+
+	// Skip small windows to avoid bugs
+	if (clientRect.right < 100 || clientRect.bottom < 100){
+		return TRUE;
+	}
+
 	managed[currentManagedIndex] = hwnd;
 	currentManagedIndex++;
 	return TRUE;
