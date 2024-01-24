@@ -19,7 +19,5 @@ $(DLL): wm_dll.obj
 wm_dll.obj: wm_dll.c
 	$(CC) /c wm_dll.c
 
-.PHONY: clean
-
 clean:
 	del *.obj $(DLL) $(EXEC) *.lib *.exp
