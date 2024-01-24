@@ -4,17 +4,17 @@ HWND managed[256];
 int currentManagedIndex = 0;
 
 BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lparam) {
-    if (!IsWindowVisible(hwnd) || !IsHungAppWindow(hwnd)) {
-        return TRUE;
-    }
+	if (!IsWindowVisible(hwnd) || !IsHungAppWindow(hwnd)) {
+		return TRUE;
+	}
 
-    if (currentManagedIndex > 255) {
-        return FALSE;
-    }
+	if (currentManagedIndex > 255) {
+		return FALSE;
+	}
 
-    managed[currentManagedIndex] = hwnd;
-    currentManagedIndex++;
-    return TRUE;
+	managed[currentManagedIndex] = hwnd;
+	currentManagedIndex++;
+	return TRUE;
 }
 
 __declspec(dllexport) LRESULT CALLBACK ShellProc(int code, WPARAM wparam, LPARAM lparam) {
@@ -31,12 +31,7 @@ __declspec(dllexport) LRESULT CALLBACK ShellProc(int code, WPARAM wparam, LPARAM
 }
 
 
-/**
- * DLL Main entry point, good to keep for debugging. 
- **/ 
-BOOL APIENTRY DllMain(HMODULE hModule, 
-					  DWORD ulReasonForCall, 
-					  LPVOID lpReserved) 
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD ulReasonForCall, LPVOID lpReserved) 
 {
 	switch(ulReasonForCall) { 
 		case DLL_PROCESS_ATTACH: 
@@ -51,3 +46,4 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 		
 	return TRUE; 
 }
+
