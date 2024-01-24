@@ -5,6 +5,8 @@
 #include "error.h"
 
 HHOOK hookHandle;
+HWND managed[256];
+int currentManagedIndex = 0;
 
 void ctrlc(int sig) {
 	if (!UnhookWindowsHookEx(hookHandle)) {
@@ -12,8 +14,50 @@ void ctrlc(int sig) {
 	}
 	
 	puts("Exiting"); 
+
+	// TODO: More cleanup
+
 	exit(ERROR_SUCCESS);
 }
+
+BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lparam) {
+	if (!IsWindowVisible(hwnd) || IsHungAppWindow(hwnd)) {
+		return TRUE;
+	}
+
+	if (currentManagedIndex > 255) {
+		return FALSE;
+	}
+
+	if (GetWindowTextLengthW(hwnd) == 0) {
+		return TRUE;
+	}
+
+	RECT clientRect;
+	if (!GetClientRect(hwnd, &clientRect)) {
+		return TRUE;
+	}
+
+	// Skip small windows to avoid bugs
+	if (clientRect.right < 100 || clientRect.bottom < 100){
+		return TRUE;
+	}
+
+	managed[currentManagedIndex] = hwnd;
+	currentManagedIndex++;
+	return TRUE;
+}
+
+void manage() {
+	currentManagedIndex = 0;
+
+	EnumChildWindows(GetDesktopWindow(), EnumChildProc, 0);
+
+	if (currentManagedIndex != 0) {
+		TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, currentManagedIndex, managed);
+	}
+}
+
 
 int main() {
 	HMODULE wmDll = LoadLibraryW(L"wm_dll");
@@ -30,6 +74,13 @@ int main() {
 		goto cleanup; 
 	}
 
+	HANDLE windowEvent = CreateEventW(NULL, FALSE, FALSE, L"LightWMWindowEvent");
+
+	if (windowEvent == NULL) {
+		reportWin32Error(L"CreateEvent failed");
+		goto cleanup;
+	}
+
 	hookHandle = SetWindowsHookExW(WH_SHELL, (HOOKPROC)shellProc, wmDll, 0);
 
 	if (hookHandle == NULL) {
@@ -39,11 +90,20 @@ int main() {
 
 	signal(SIGINT, ctrlc);
 
+	for (;;) {
+		WaitForSingleObject(windowEvent, INFINITE);
+		manage();
+	}
+
 	Sleep(INFINITE);
 
 cleanup:
 	if (wmDll) {
 		FreeLibrary(wmDll);
+	}
+
+	if (windowEvent) {
+		CloseHandle(windowEvent);
 	}
 
 	return EXIT_FAILURE;
