@@ -19,13 +19,35 @@ BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lparam) {
 
 __declspec(dllexport) LRESULT CALLBACK ShellProc(int code, WPARAM wparam, LPARAM lparam) {
 
-    if (code == HSHELL_WINDOWCREATED || code == HSHELL_WINDOWDESTROYED) {
-        currentManagedIndex = 0;
+	if (code == HSHELL_WINDOWCREATED || code == HSHELL_WINDOWDESTROYED) {
+		currentManagedIndex = 0;
 
-        EnumChildWindows(GetDesktopWindow(), EnumChildProc, 0);
+		EnumChildWindows(GetDesktopWindow(), EnumChildProc, 0);
 
-        TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, currentManagedIndex, managed);
-    }
+		TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, currentManagedIndex, managed);
+	}
 
-    return CallNextHookEx(NULL, code, wparam, lparam);
+	return CallNextHookEx(NULL, code, wparam, lparam);
+}
+
+
+/**
+ * DLL Main entry point, good to keep for debugging. 
+ **/ 
+BOOL APIENTRY DllMain(HMODULE hModule, 
+					  DWORD ulReasonForCall, 
+					  LPVOID lpReserved) 
+{
+	switch(ulReasonForCall) { 
+		case DLL_PROCESS_ATTACH: 
+			break; 
+		case DLL_THREAD_ATTACH: 
+			break;
+		case DLL_THREAD_DETACH: 
+			break; 
+		case DLL_PROCESS_DETACH: 
+			break; 
+	}
+		
+	return TRUE; 
 }
