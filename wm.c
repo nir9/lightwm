@@ -45,7 +45,7 @@ int main() {
 		goto cleanup; 
 	}
 
-	hookHandle = SetWindowsHookExW(WH_SHELL, shellProc, wmDll, 0);
+	hookHandle = SetWindowsHookExW(WH_SHELL, (HOOKPROC)shellProc, wmDll, 0);
 
 	if (hookHandle == NULL) {
 		wprintf(L"[!] Error while getting hook.\nError: %ld", GetLastError());
@@ -65,7 +65,7 @@ int main() {
 			CloseHandle(hookHandle);
 		}
 
-		wprintf("[+] Finished Cleanup.\n");
+		wprintf(L"[+] Finished Cleanup.\n");
 	
 	return EXIT_SUCCESS;
 }
