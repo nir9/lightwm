@@ -17,5 +17,5 @@ int main() {
 
     signal(SIGINT, ctrlc);
 
-    for (;;) {}
+    Sleep(INFINITE);
 }
