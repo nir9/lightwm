@@ -41,16 +41,10 @@ int main() {
 
 	Sleep(INFINITE);
 
-	cleanup:
-		if (wmDll) {
-			FreeLibrary(wmDll);
-		}
+cleanup:
+	if (wmDll) {
+		FreeLibrary(wmDll);
+	}
 
-		if (hookHandle) {
-			CloseHandle(hookHandle);
-		}
-
-		wprintf(L"[+] Finished Cleanup.\n");
-	
 	return EXIT_FAILURE;
 }
