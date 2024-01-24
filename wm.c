@@ -57,8 +57,8 @@ int main() {
 	Sleep(INFINITE);
 
 	cleanup:
-		if (wm_dll) {
-			FreeLibrary(wm_dll);
+		if (wmDll) {
+			FreeLibrary(wmDll);
 		}
 
 		if (hookHandle) {
