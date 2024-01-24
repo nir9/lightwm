@@ -4,7 +4,7 @@ HWND managed[256];
 int currentManagedIndex = 0;
 
 BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lparam) {
-	if (!IsWindowVisible(hwnd) || !IsHungAppWindow(hwnd)) {
+	if (!IsWindowVisible(hwnd) || IsHungAppWindow(hwnd)) {
 		return TRUE;
 	}
 
