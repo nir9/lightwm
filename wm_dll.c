@@ -24,7 +24,9 @@ __declspec(dllexport) LRESULT CALLBACK ShellProc(int code, WPARAM wparam, LPARAM
 
 		EnumChildWindows(GetDesktopWindow(), EnumChildProc, 0);
 
-		TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, currentManagedIndex, managed);
+		if (currentManagedIndex != 0) {
+			TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, currentManagedIndex, managed);
+		}
 	}
 
 	return CallNextHookEx(NULL, code, wparam, lparam);
