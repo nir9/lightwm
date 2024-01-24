@@ -6,6 +6,7 @@
 #include "tiling.h"
 
 HHOOK hookHandle;
+HHOOK keyboardHookHandle; 
 
 void ctrlc(int sig) {
 	if (!UnhookWindowsHookEx(hookHandle)) {
@@ -30,7 +31,14 @@ int main() {
 	FARPROC shellProc = GetProcAddress(wmDll, "ShellProc");
 
 	if (shellProc == NULL) { 
-		reportWin32Error(L"GetProcAddress failed");
+		reportWin32Error(L"GetProcAddress failed for shell even callback");
+		goto cleanup; 
+	}
+	
+	FARPROC keyProc = GetProcAddress(wmDll, "KeyProc"); 
+	
+	if (keyProc == NULL) { 
+		reportWin32Error(L"GetProcAddress failed for keyboard event callback"); 
 		goto cleanup; 
 	}
 
@@ -44,19 +52,30 @@ int main() {
 	hookHandle = SetWindowsHookExW(WH_SHELL, (HOOKPROC)shellProc, wmDll, 0);
 
 	if (hookHandle == NULL) {
-		reportWin32Error(L"SetWindowsHookExW failed");
+		reportWin32Error(L"SetWindowsHookExW failed for shell hook");
 		goto cleanup;
 	}
-
+	
+	keyboardHookHandle = SetWindowsHookExW(WH_KEYBOARD_LL, (HOOKPROC)keyProc, wmDll, 0); 
+	
+	if (keyboardHookHandle == NULL) { 
+		reportWin32Error(L"SetWindowsHookExW failed for keyboard hook"); 
+		goto cleanup;
+	}
+	
 	signal(SIGINT, ctrlc);
 
-	for (;;) {
+	MSG msg; 
+	while (GetMessage(&msg, NULL, 0, 0) != 0) {
 		if (WaitForSingleObject(windowEvent, INFINITE) == WAIT_FAILED) {
 			reportWin32Error(L"WaitForSingleObject failed");
 			goto cleanup;
 		}
 
 		tileWindows();
+		
+		TranslateMessage(&msg); 
+		DispatchMessageW(&msg); 
 	}
 
 	Sleep(INFINITE);
@@ -64,6 +83,10 @@ int main() {
 cleanup:
 	if (hookHandle) {
 		UnhookWindowsHookEx(hookHandle);
+	}
+	
+	if (keyboardHookHandle) { 
+		UnhookWindowsHookEx(keyboardHookHandle); 
 	}
 
 	if (wmDll) {
@@ -73,6 +96,7 @@ cleanup:
 	if (windowEvent) {
 		CloseHandle(windowEvent);
 	}
+	
 
 	return EXIT_FAILURE;
 }
