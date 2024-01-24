@@ -3,11 +3,13 @@
 
 ## Building
 
-You can build using the Microsoft Visual Studio Build Tools console:
+You can build using the "x64 Native Tools Command Prompt for VS 2022" that comes with Microsoft Visual Studio Build Tools:
 
-You can use the nmake command which will build according to the make file
+In the console you can run nmake to build according to the Makefile
 
 ```nmake```
+
+I haven't tried building with a different VS version or building x86, but that may work as well.
 
 ## Todo
 
