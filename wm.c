@@ -62,6 +62,8 @@ int main() {
 
 	signal(SIGINT, ctrlc);
 
+	tileWindows();
+
 	for (;;) {
 		if (WaitForSingleObject(windowEvent, INFINITE) == WAIT_FAILED) {
 			reportWin32Error(L"WaitForSingleObject");
