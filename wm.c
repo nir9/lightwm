@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "error.h"
 #include "tiling.h"
+#include "config_reader.h"
 
 HHOOK hookHandle;
 HHOOK keyboardHookHandle; 
@@ -21,6 +22,11 @@ void ctrlc(int sig) {
 }
 
 int main() {
+	//----------------------------------------------
+	/** 
+	 * Load Libraries and the needed functions from those libraries
+	**/
+	//----------------------------------------------
 	HMODULE wmDll = LoadLibraryW(L"wm_dll");
 	
 	if (wmDll == NULL) {
@@ -65,6 +71,19 @@ int main() {
 	
 	signal(SIGINT, ctrlc);
 
+	//----------------------------------------------
+	/** 
+	 * Read the config file here
+	**/
+	//----------------------------------------------
+	LoadConfigFile(); 
+	
+
+	//----------------------------------------------
+	/** 
+	 * Handle a message loop
+	**/
+	//----------------------------------------------
 	MSG msg; 
 	while (GetMessage(&msg, NULL, 0, 0) != 0) {
 		if (WaitForSingleObject(windowEvent, INFINITE) == WAIT_FAILED) {
@@ -80,6 +99,11 @@ int main() {
 
 	Sleep(INFINITE);
 
+	//----------------------------------------------
+	/** 
+	 * Cleanup and gracefully exit
+	**/
+	//----------------------------------------------
 cleanup:
 	if (hookHandle) {
 		UnhookWindowsHookEx(hookHandle);

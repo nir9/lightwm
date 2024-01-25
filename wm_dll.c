@@ -17,6 +17,7 @@ __declspec(dllexport) LRESULT CALLBACK KeyProc(int code, WPARAM wparam, LPARAM l
     
     if (wparam == WM_KEYDOWN && code == HC_ACTION)
     {
+		//Just example here
         switch (key->vkCode)
         {
         case VK_ESCAPE:
