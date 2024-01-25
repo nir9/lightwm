@@ -10,11 +10,15 @@
  
  #include <stdint.h>
  
- typedef struct KeyboardConfigItem { 
+typedef struct KeyboardConfigItem { 
 	char* name;
 	uint16_t keycode;
- } _KeyboardConfigItem; 
+} _KeyboardConfigItem; 
+
+KeyboardConfigItem[256] KeyboardConfigArr; //TODO Maybe move this to heap memory
   
 uint8_t LoadConfigFile(); 
 
 uint8_t CreateDefaultConfigFile(); 
+
+void CleanupConfigReader(); 

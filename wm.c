@@ -121,6 +121,7 @@ cleanup:
 		CloseHandle(windowEvent);
 	}
 	
+	CleanupConfigReader(); 
 
 	return EXIT_FAILURE;
 }
