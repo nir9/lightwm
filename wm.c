@@ -68,9 +68,7 @@ int main() {
 			goto cleanup;
 		}
 
-		if (!tileWindows()) {
-			goto cleanup;
-		}
+		tileWindows();
 	}
 
 cleanup:

@@ -2,4 +2,4 @@
 
 #include <stdbool.h>
 
-bool tileWindows();
+void tileWindows();

@@ -33,19 +33,14 @@ BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lparam) {
 	return TRUE;
 }
 
-bool tileWindows() {
+void tileWindows() {
 	currentManagedIndex = 0;
 
 	EnumChildWindows(GetDesktopWindow(), EnumChildProc, 0);
 
 	if (currentManagedIndex == 0) {
-		return true;
+		return;
 	}
 
-	if (TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, currentManagedIndex, managed) == 0) {
-		reportWin32Error(L"TileWindows");
-		return false;
-	}
-
-	return true;
+	TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, currentManagedIndex, managed);
 }
