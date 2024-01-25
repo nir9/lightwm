@@ -1,4 +1,5 @@
 #include "tiling.h"
+#include "error.h"
 #include <Windows.h>
 
 HWND managed[256];
@@ -32,12 +33,19 @@ BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lparam) {
 	return TRUE;
 }
 
-void tileWindows() {
+bool tileWindows() {
 	currentManagedIndex = 0;
 
 	EnumChildWindows(GetDesktopWindow(), EnumChildProc, 0);
 
-	if (currentManagedIndex != 0) {
-		TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, currentManagedIndex, managed);
+	if (currentManagedIndex == 0) {
+		return true;
 	}
+
+	if (TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, currentManagedIndex, managed) == 0) {
+		reportWin32Error(L"TileWindows");
+		return false;
+	}
+
+	return true;
 }

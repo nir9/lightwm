@@ -1,3 +1,5 @@
 #pragma once
 
-void tileWindows();
+#include <stdbool.h>
+
+bool tileWindows();
