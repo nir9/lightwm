@@ -6,17 +6,12 @@
  * demetryromanowski@gmail.com
  **/ 
  
- #pragma once
+#pragma once
  
- #include <stdint.h>
- 
-typedef struct KeyboardConfigItem { 
-	char* name;
-	uint16_t keycode;
-} _KeyboardConfigItem; 
+#include <stdint.h>
 
-KeyboardConfigItem[256] KeyboardConfigArr; //TODO Maybe move this to heap memory
-  
+typedef struct ConfigItem;
+
 uint8_t LoadConfigFile(); 
 
 uint8_t CreateDefaultConfigFile(); 

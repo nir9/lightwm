@@ -15,12 +15,83 @@
 #include <stdio.h> 
 #include <strsafe.h> 
 #include <shlwapi.h> 
+#include <assert.h> 
 
 #include "error.h" 
 
 PWSTR szPath[MAX_PATH]; 
 
-void GetConfigFilePath() { 
+typedef struct ConfigItem { 
+	char* name;
+	char* value;
+} ConfigItem; 
+
+//Should probably create a meta structure that holds the total count for now just another global variable
+ConfigItem* GPtrConfigItems = NULL; 
+size_t GPtrConfigItemsCount = 0; 
+
+DWORD ReadConfigFile() 
+{ 
+	FILE* configFileHandle = _wfopen(*szPath, L"r"); 
+	
+	if(configFileHandle == NULL) 
+	{
+		SetLastError(ERROR_INVALID_HANDLE); 
+		reportWin32Error(L"Config file could not be opened"); 
+		return ERROR_INVALID_HANDLE; 
+	}
+	
+	char line[256]; //TODO must have a more clever way of getting a line length
+	uint32_t index = 0; 
+	size_t lineCount = 0; 
+	
+	GPtrConfigItems = (ConfigItem*)malloc(sizeof(ConfigItem)); 
+	GPtrConfigItems[0].name = (char*)malloc(sizeof(char) * 256); // Need to free this memory when quitting
+	GPtrConfigItems[0].value = (char*)malloc(sizeof(char) * 256);
+	
+	while(fgets(line, sizeof(line), configFileHandle)) { 
+		//Grab a clean copy of the old address before doing a realloc in case of failure. 
+		ConfigItem* ptrClean = GPtrConfigItems; 
+		GPtrConfigItems = (ConfigItem*)realloc(GPtrConfigItems, sizeof(ConfigItem) * ((++lineCount) + 1)); 
+		
+		if(GPtrConfigItems == NULL)
+		{
+			assert(ptrClean != NULL);
+			free(ptrClean); 
+			reportWin32Error(L"Unable to reallocate memory"); 
+			CleanupConfigReader();
+			return; 
+		}
+			
+		char* token = strtok(line, " "); 
+		size_t tokenCount = 0;
+		while(token != NULL) {
+			switch(tokenCount) {
+				case 0: 
+					GPtrConfigItems[lineCount].name = (char*)malloc(sizeof(token));
+					(void)strcpy(GPtrConfigItems[lineCount].name, token); 
+				case 1: 
+					GPtrConfigItems[lineCount].value = (char*)malloc(sizeof(token)); 
+					(void)strcpy(GPtrConfigItems[lineCount].value, token); 
+			}
+			tokenCount++; 
+			token = strtok(NULL, " "); 
+		}
+	}
+	
+	GPtrConfigItemsCount = lineCount; 
+	
+	for(size_t i = 0; i < GPtrConfigItemsCount; i++) { 
+		printf("%s", GPtrConfigItems[i].name); 
+	}
+	
+	fclose(configFileHandle); 
+	
+	return ERROR_SUCCESS;
+}
+
+void GetConfigFilePath() 
+{ 
 	//TODO: We don't check other results possible results, i.e E_FAIL
 	HRESULT getAppDataPathResult = SHGetKnownFolderPath(&FOLDERID_RoamingAppData, 0, NULL, szPath); 
 	
@@ -48,57 +119,46 @@ void GetConfigFilePath() {
 	}
 }
 
-// TODO Remove this
-void PrintString(PWSTR str) {
-    HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    if (hStdOut == INVALID_HANDLE_VALUE) {
-        fprintf(stderr, "Failed to get standard output handle.\n");
-        return;
-    }
 
-    DWORD written;
-    WriteConsoleW(hStdOut, str, wcslen(str), &written, NULL);
-}
 
-uint8_t CreateDefaultConfigFile()
-{
-	GetConfigFilePath(); 
-	
-	
-	
-	return 0;
-}
-
-uint8_t LoadConfigFile() { 
+uint8_t LoadConfigFile() 
+{ 
 	
 	GetConfigFilePath();
 
 	if(!PathFileExistsW(*szPath))
 	{
-		PrintString(L"Config file does not exist\n"); 
 		SetLastError(ERROR_FILE_NOT_FOUND);
+		reportWin32Error(L"Config file could not be found"); 
 		return ERROR_FILE_NOT_FOUND;
 	}
 	
-	FILE* configFileHandle = _wfopen(*szPath, L"r"); 
-	
-	if(configFileHandle == NULL) 
-	{
-		PrintString(L"Config file could not be opened"); 
-		SetLastError(ERROR_INVALID_HANDLE); 
-		return ERROR_INVALID_HANDLE; 
-	}
-	
-	char line[256]; //TODO Dynamically set line width 
-	while(fgets(line, sizeof(line), configFileHandle)) { 
-		printf("%s", line); 
-	}
-	
-	fclose(configFileHandle); 
-	
+	ReadConfigFile();
+
 	return ERROR_SUCCESS; 
 }
 
-void CleanupConfigReader() { 
+void CleanupConfigReader() 
+{ 
 	CoTaskMemFree(szPath); 
+	
+	if(GPtrConfigItems) //TODO Cleanup the name and value pointers for the strings
+	{
+		for(size_t i = 0; i < GPtrConfigItemsCount; i++) 
+		{
+			if(GPtrConfigItems[i] != NULL) 
+			{ 
+				if(GPtrConfigItems[i].name) 
+				{ 
+					free(GPtrConfigItems[i].name); 
+				}
+				
+				if(GPtrConfigItems[i].value)
+				{
+					free(GPtrConfigItems[i].value); 
+				}
+			}
+		}
+		free(GPtrConfigItems); 
+	}
 }
