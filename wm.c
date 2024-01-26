@@ -70,6 +70,8 @@ int main() {
 			goto cleanup;
 		}
 
+		Sleep(100);
+
 		tileWindows();
 	}
 
