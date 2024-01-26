@@ -10,7 +10,8 @@
  
 #include <stdint.h>
 
-typedef struct ConfigItem;
+typedef struct _ConfigItem ConfigItem;
+typedef struct _ConfigItems ConfigItems; 
 
 uint8_t LoadConfigFile(); 
 

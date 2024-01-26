@@ -21,10 +21,15 @@
 
 PWSTR szPath[MAX_PATH]; 
 
-typedef struct ConfigItem { 
+typedef struct _ConfigItem { 
 	char* name;
 	char* value;
 } ConfigItem; 
+
+typedef struct _ConfigItems { 
+	ConfigItem* ConfigItems; 
+	size_t ConfigItemCount;
+} ConfigItems; 
 
 //Should probably create a meta structure that holds the total count for now just another global variable
 ConfigItem* GPtrConfigItems = NULL; 
@@ -49,20 +54,14 @@ DWORD ReadConfigFile()
 	GPtrConfigItems[0].name = (char*)malloc(sizeof(char) * 256); // Need to free this memory when quitting
 	GPtrConfigItems[0].value = (char*)malloc(sizeof(char) * 256);
 	
+	if(GPtrConfigItems == NULL) 
+	{ 
+		reportWin32Error(L"Unable to allocate memory"); 
+		CleanupConfigReader(); 
+		return ERROR_NOT_ENOUGH_MEMORY;
+	}
+	
 	while(fgets(line, sizeof(line), configFileHandle)) { 
-		//Grab a clean copy of the old address before doing a realloc in case of failure. 
-		ConfigItem* ptrClean = GPtrConfigItems; 
-		GPtrConfigItems = (ConfigItem*)realloc(GPtrConfigItems, sizeof(ConfigItem) * ((++lineCount) + 1)); 
-		
-		if(GPtrConfigItems == NULL)
-		{
-			assert(ptrClean != NULL);
-			free(ptrClean); 
-			reportWin32Error(L"Unable to reallocate memory"); 
-			CleanupConfigReader();
-			return; 
-		}
-			
 		char* token = strtok(line, " "); 
 		size_t tokenCount = 0;
 		while(token != NULL) {
@@ -77,12 +76,25 @@ DWORD ReadConfigFile()
 			tokenCount++; 
 			token = strtok(NULL, " "); 
 		}
+		
+		//Grab a clean copy of the old address before doing a realloc in case of failure. 
+		ConfigItem* ptrClean = GPtrConfigItems; 
+		GPtrConfigItems = (ConfigItem*)realloc(GPtrConfigItems, sizeof(ConfigItem) * ((++lineCount) + 1)); 
+		
+		if(GPtrConfigItems == NULL)
+		{
+			assert(ptrClean != NULL);
+			free(ptrClean); 
+			reportWin32Error(L"Unable to reallocate memory"); 
+			CleanupConfigReader();
+			return ERROR_INVALID_BLOCK; //TODO This might not be the best error code to return here 
+		}
 	}
 	
 	GPtrConfigItemsCount = lineCount; 
 	
 	for(size_t i = 0; i < GPtrConfigItemsCount; i++) { 
-		printf("%s", GPtrConfigItems[i].name); 
+		printf("Config Item: %zi - %s: %s\n", i, GPtrConfigItems[i].name, GPtrConfigItems[i].value); 
 	}
 	
 	fclose(configFileHandle); 
@@ -146,7 +158,7 @@ void CleanupConfigReader()
 	{
 		for(size_t i = 0; i < GPtrConfigItemsCount; i++) 
 		{
-			if(GPtrConfigItems[i] != NULL) 
+			if(&GPtrConfigItems[i] != NULL) 
 			{ 
 				if(GPtrConfigItems[i].name) 
 				{ 
