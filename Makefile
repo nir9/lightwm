@@ -11,7 +11,7 @@ CFLAGS  = /EHsc
 LDFLAGS = 
 
 EXE_SRCS = wm.c tiling.c error.c
-DLL_SRCS = wm_dll.c error.c config.c keyboard.c
+DLL_SRCS = error.c config.c keyboard.c wm_dll.c
 
 EXE_OBJS = $(EXE_SRCS:.c=.obj)
 DLL_OBJS = $(DLL_SRCS:.c=.obj)

@@ -24,16 +24,6 @@
 PWSTR szConfigFilePath[MAX_PATH]; 
 char* defaultConfigData = NULL; 
 
-typedef struct _ConfigItem { 
-	char* name;
-	char* value;
-} ConfigItem; 
-
-typedef struct _ConfigItems { 
-	ConfigItem* configItem; 
-	size_t configItemsCount;
-} ConfigItems; 
-
 //Should probably create a meta structure that holds the total count for now just another global variable
 ConfigItems configItems; 
 

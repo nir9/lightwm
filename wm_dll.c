@@ -1,8 +1,8 @@
 #include <Windows.h>
 
 #include "targetver.h"
-#include "config.h"
 #include "keyboard.h" 
+#include "config.h"
 
 __declspec(dllexport) LRESULT CALLBACK ShellProc(int code, WPARAM wparam, LPARAM lparam) {
 	if (code == HSHELL_WINDOWCREATED || code == HSHELL_WINDOWDESTROYED) {
@@ -41,8 +41,20 @@ BOOL APIENTRY DllMain(HINSTANCE hModule, DWORD ulReasonForCall, LPVOID lpReserve
 			 * Read the config file here
 			**/
 			//----------------------------------------------
-			if(LoadConfigFile(hModule) != ERROR_SUCCESS) { 
+			if(LoadConfigFile(hModule) != ERROR_SUCCESS) 
+			{ 
 				exit(GetLastError());
+			}
+			
+			
+			//----------------------------------------------
+			/** 
+			 * Initialize the keyboard config and actions here
+			**/
+			//----------------------------------------------
+			if(!InitializeKeyboardConfig(GetConfigItems())) 
+			{ 
+				exit(GetLastError()); 
 			}
 		}	
 			break; 
@@ -57,7 +69,14 @@ BOOL APIENTRY DllMain(HINSTANCE hModule, DWORD ulReasonForCall, LPVOID lpReserve
 			 * Cleanup the config reader memory here
 			**/
 			//----------------------------------------------
-			CleanupConfigReader(); 
+			CleanupConfigReader();
+
+			//----------------------------------------------
+			/** 
+			 * Cleanup the config reader memory here
+			**/
+			//----------------------------------------------
+			CleanupKeyboard(); 
 		}
 			break; 
 	}
