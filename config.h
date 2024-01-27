@@ -1,5 +1,5 @@
 /**
- * Config reader
+ * Config Reader and Parser
  * This program will read the config for lightwm in the appdata directory
  * 
  * Demetry Romanowski
@@ -13,8 +13,6 @@
 typedef struct _ConfigItem ConfigItem;
 typedef struct _ConfigItems ConfigItems; 
 
-uint8_t LoadConfigFile(); 
-
-uint8_t CreateDefaultConfigFile(); 
+uint8_t LoadConfigFile(HINSTANCE); 
 
 void CleanupConfigReader(); 

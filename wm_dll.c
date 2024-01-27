@@ -1,6 +1,7 @@
 #include <Windows.h>
 
-#include "config_reader.h"
+#include "targetver.h"
+#include "config.h"
 
 
 __declspec(dllexport) LRESULT CALLBACK ShellProc(int code, WPARAM wparam, LPARAM lparam) {
@@ -38,7 +39,7 @@ __declspec(dllexport) LRESULT CALLBACK KeyProc(int code, WPARAM wparam, LPARAM l
     return CallNextHookEx(NULL, code, wparam, lparam);
 }
 
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD ulReasonForCall, LPVOID lpReserved) 
+BOOL APIENTRY DllMain(HINSTANCE hModule, DWORD ulReasonForCall, LPVOID lpReserved) 
 {
 	switch(ulReasonForCall) { 
 		case DLL_PROCESS_ATTACH:
@@ -48,7 +49,9 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ulReasonForCall, LPVOID lpReserved)
 			 * Read the config file here
 			**/
 			//----------------------------------------------
-			LoadConfigFile(); 
+			if(LoadConfigFile(hModule) != ERROR_SUCCESS) { 
+				exit(GetLastError());
+			}
 		}	
 			break; 
 		case DLL_THREAD_ATTACH: 

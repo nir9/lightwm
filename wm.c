@@ -95,14 +95,15 @@ int main() {
 	tileWindows();
 	MSG msg; 
 	while (GetMessage(&msg, NULL, 0, 0) != 0) {
-		if (WaitForSingleObject(windowEvent, INFINITE) == WAIT_FAILED) {
-			reportWin32Error(L"WaitForSingleObject");
-			goto cleanup;
-		}
+		//if (WaitForSingleObject(windowEvent, INFINITE) == WAIT_FAILED) {
+		//	reportWin32Error(L"WaitForSingleObject");
+		//	goto cleanup;
+		//}
 
-		Sleep(100);
+		//Just going to ignore this for now TODO fix this before pull request
+		//Sleep(100);
 
-		tileWindows();
+		//tileWindows();
 		
 		TranslateMessage(&msg); 
 		DispatchMessageW(&msg); 

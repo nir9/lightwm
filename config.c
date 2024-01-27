@@ -1,5 +1,5 @@
 /**
- * Config reader
+ * Config Reader and Parser
  * This program will read the config for lightwm in the appdata directory
  * 
  * Demetry Romanowski
@@ -7,7 +7,7 @@
  **/ 
  
  
-#include "config_reader.h" 
+#include "config.h" 
 
 #include <Windows.h> 
 #include <Shlobj.h> 
@@ -18,8 +18,13 @@
 #include <assert.h> 
 
 #include "error.h" 
+#include "resource.h"
 
+/**
+ * Config reader global vars
+ **/
 PWSTR szPath[MAX_PATH]; 
+char* defaultConfigData = NULL; 
 
 typedef struct _ConfigItem { 
 	char* name;
@@ -34,6 +39,13 @@ typedef struct _ConfigItems {
 //Should probably create a meta structure that holds the total count for now just another global variable
 ConfigItem* GPtrConfigItems = NULL; 
 size_t GPtrConfigItemsCount = 0; 
+
+/**
+ * Private prototypes here
+**/
+BOOL CreateDefaultConfigFile(HINSTANCE);
+BOOL LoadDefaultConfigResourceData(HINSTANCE);
+BOOL WriteDefaultConfigDataToFile(); 
 
 DWORD ReadConfigFile() 
 { 
@@ -62,6 +74,10 @@ DWORD ReadConfigFile()
 	}
 	
 	while(fgets(line, sizeof(line), configFileHandle)) { 
+		if(strlen(line) == 0)
+			continue; 
+		
+	
 		char* token = strtok(line, " "); 
 		size_t tokenCount = 0;
 		while(token != NULL) {
@@ -131,18 +147,18 @@ void GetConfigFilePath()
 	}
 }
 
-
-
-uint8_t LoadConfigFile() 
+uint8_t LoadConfigFile(HINSTANCE resourceModuleHandle) 
 { 
-	
 	GetConfigFilePath();
 
 	if(!PathFileExistsW(*szPath))
 	{
-		SetLastError(ERROR_FILE_NOT_FOUND);
-		reportWin32Error(L"Config file could not be found"); 
-		return ERROR_FILE_NOT_FOUND;
+		if(!CreateDefaultConfigFile(resourceModuleHandle)) 
+		{ 
+			SetLastError(ERROR_RESOURCE_NOT_AVAILABLE); 
+			reportWin32Error(L"Create a default config file"); 
+			return ERROR_RESOURCE_NOT_AVAILABLE; //TODO Maybe find a better error code here
+		}
 	}
 	
 	ReadConfigFile();
@@ -174,3 +190,73 @@ void CleanupConfigReader()
 		free(GPtrConfigItems); 
 	}
 }
+
+/**
+ * Private definitions here
+ **/
+BOOL CreateDefaultConfigFile(HINSTANCE resourceModuleHandle) 
+{
+	if(!LoadDefaultConfigResourceData(resourceModuleHandle)) 
+		return FALSE;
+	
+	if(!WriteDefaultConfigDataToFile())
+		return FALSE; 
+	
+	return TRUE; 
+}
+
+BOOL LoadDefaultConfigResourceData(HINSTANCE resourceModuleHandle)
+{ 
+	
+	HRSRC hRes = FindResource(resourceModuleHandle, MAKEINTRESOURCE(IDR_DEFAULT_CONFIG), RT_RCDATA); 
+	
+	if(hRes == NULL) 
+	{
+		puts("Could not get HRSRC Handle"); 
+		printf("%s %i\n", "FindResource Error: ", GetLastError());
+		return FALSE; 
+	}
+	
+	HGLOBAL hData = LoadResource(resourceModuleHandle, hRes); 
+	
+	if(hData == NULL) 
+	{
+		puts("Could not load resource"); 
+		printf("%s %i\n", "LoadResource Error: ", GetLastError());
+		return FALSE; 
+	}
+	
+	LPVOID defaultConfigResourceData = LockResource(hData); 
+	
+	if(defaultConfigResourceData == NULL) 
+	{
+		puts("Could not read resource"); 
+		printf("%s %i\n", "LockResource Error: ", GetLastError());
+		return FALSE; 
+	}
+	
+	size_t defaultConfigResourceDataLen = strlen(defaultConfigResourceData) + 1; //+1 for the null char
+	defaultConfigData = (char*)malloc(sizeof(char) * defaultConfigResourceDataLen); //TODO Error checking
+	strcpy(defaultConfigData, defaultConfigResourceData); 
+	
+	return TRUE; 
+}
+
+BOOL WriteDefaultConfigDataToFile() 
+{ 
+	FILE* configFileHandle = _wfopen(*szPath, L"w"); 
+	
+	if(configFileHandle == NULL) 
+	{ 
+		return FALSE; 
+	}
+
+	fprintf(configFileHandle, defaultConfigData);
+
+	puts("Created default config file"); 
+
+	fclose(configFileHandle); 
+	
+	return TRUE;
+}
+
