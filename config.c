@@ -5,8 +5,6 @@
  * Demetry Romanowski
  * demetryromanowski@gmail.com
  **/ 
- 
- 
 #include "config.h" 
 
 #include <Windows.h> 
@@ -23,7 +21,7 @@
 /**
  * Config reader global vars
  **/
-PWSTR szPath[MAX_PATH]; 
+PWSTR szConfigFilePath[MAX_PATH]; 
 char* defaultConfigData = NULL; 
 
 typedef struct _ConfigItem { 
@@ -32,13 +30,12 @@ typedef struct _ConfigItem {
 } ConfigItem; 
 
 typedef struct _ConfigItems { 
-	ConfigItem* ConfigItems; 
-	size_t ConfigItemCount;
+	ConfigItem* configItem; 
+	size_t configItemsCount;
 } ConfigItems; 
 
 //Should probably create a meta structure that holds the total count for now just another global variable
-ConfigItem* GPtrConfigItems = NULL; 
-size_t GPtrConfigItemsCount = 0; 
+ConfigItems configItems; 
 
 /**
  * Private prototypes here
@@ -49,7 +46,8 @@ BOOL WriteDefaultConfigDataToFile();
 
 DWORD ReadConfigFile() 
 { 
-	FILE* configFileHandle = _wfopen(*szPath, L"r"); 
+	//Try to open the config file based on the path
+	FILE* configFileHandle = _wfopen(*szConfigFilePath, L"r"); 
 	
 	if(configFileHandle == NULL) 
 	{
@@ -62,11 +60,11 @@ DWORD ReadConfigFile()
 	uint32_t index = 0; 
 	size_t lineCount = 0; 
 	
-	GPtrConfigItems = (ConfigItem*)malloc(sizeof(ConfigItem)); 
-	GPtrConfigItems[0].name = (char*)malloc(sizeof(char) * 256); // Need to free this memory when quitting
-	GPtrConfigItems[0].value = (char*)malloc(sizeof(char) * 256);
+	configItems.configItem = (ConfigItem*)malloc(sizeof(ConfigItem)); 
+	configItems.configItem[0].name = (char*)malloc(sizeof(char) * 256);
+	configItems.configItem[0].value = (char*)malloc(sizeof(char) * 256);
 	
-	if(GPtrConfigItems == NULL) 
+	if(configItems.configItem == NULL) 
 	{ 
 		reportWin32Error(L"Unable to allocate memory"); 
 		CleanupConfigReader(); 
@@ -83,21 +81,21 @@ DWORD ReadConfigFile()
 		while(token != NULL) {
 			switch(tokenCount) {
 				case 0: 
-					GPtrConfigItems[lineCount].name = (char*)malloc(sizeof(token));
-					(void)strcpy(GPtrConfigItems[lineCount].name, token); 
+					configItems.configItem[lineCount].name = (char*)malloc(strlen(token));
+					strcpy(configItems.configItem[lineCount].name, token); 
 				case 1: 
-					GPtrConfigItems[lineCount].value = (char*)malloc(sizeof(token)); 
-					(void)strcpy(GPtrConfigItems[lineCount].value, token); 
+					configItems.configItem[lineCount].value = (char*)malloc(strlen(token)); 
+					strcpy(configItems.configItem[lineCount].value, token); 
 			}
 			tokenCount++; 
 			token = strtok(NULL, " "); 
 		}
 		
 		//Grab a clean copy of the old address before doing a realloc in case of failure. 
-		ConfigItem* ptrClean = GPtrConfigItems; 
-		GPtrConfigItems = (ConfigItem*)realloc(GPtrConfigItems, sizeof(ConfigItem) * ((++lineCount) + 1)); 
+		ConfigItem* ptrClean = configItems.configItem; 
+		configItems.configItem = (ConfigItem*)realloc(configItems.configItem, sizeof(ConfigItem) * ((++lineCount) + 1)); 
 		
-		if(GPtrConfigItems == NULL)
+		if(configItems.configItem == NULL)
 		{
 			assert(ptrClean != NULL);
 			free(ptrClean); 
@@ -107,12 +105,8 @@ DWORD ReadConfigFile()
 		}
 	}
 	
-	GPtrConfigItemsCount = lineCount; 
-	
-	for(size_t i = 0; i < GPtrConfigItemsCount; i++) { 
-		printf("Config Item: %zi - %s: %s\n", i, GPtrConfigItems[i].name, GPtrConfigItems[i].value); 
-	}
-	
+	configItems.configItemsCount = lineCount; 
+		
 	fclose(configFileHandle); 
 	
 	return ERROR_SUCCESS;
@@ -121,16 +115,16 @@ DWORD ReadConfigFile()
 void GetConfigFilePath() 
 { 
 	//TODO: We don't check other results possible results, i.e E_FAIL
-	HRESULT getAppDataPathResult = SHGetKnownFolderPath(&FOLDERID_RoamingAppData, 0, NULL, szPath); 
+	HRESULT getAppDataPathResult = SHGetKnownFolderPath(&FOLDERID_RoamingAppData, 0, NULL, szConfigFilePath); 
 	
 	if(!SUCCEEDED(getAppDataPathResult)) { 
 		SetLastError(ERROR_PATH_NOT_FOUND); //SHGetKnownFolderPath does not set an error on fail so we set it manually
 		reportWin32Error(L"Could not get the users appdata directory"); 
-		CoTaskMemFree(szPath); 
+		CoTaskMemFree(szConfigFilePath); 
 		exit(ERROR_PATH_NOT_FOUND);
 	}
 	
-	HRESULT concatStringResult = StringCchCatW(*szPath, MAX_PATH, L"\\lightwm.config");
+	HRESULT concatStringResult = StringCchCatW(*szConfigFilePath, MAX_PATH, L"\\lightwm.config");
 	
 	if(!SUCCEEDED(concatStringResult)) { 
 		switch(concatStringResult){ 
@@ -142,7 +136,7 @@ void GetConfigFilePath()
 				break; 
 		}
 		reportWin32Error(L"Could not append file name to appdata path"); 
-		CoTaskMemFree(szPath); 
+		CoTaskMemFree(szConfigFilePath); 
 		exit(GetLastError()); 
 	}
 }
@@ -151,7 +145,7 @@ uint8_t LoadConfigFile(HINSTANCE resourceModuleHandle)
 { 
 	GetConfigFilePath();
 
-	if(!PathFileExistsW(*szPath))
+	if(!PathFileExistsW(*szConfigFilePath))
 	{
 		if(!CreateDefaultConfigFile(resourceModuleHandle)) 
 		{ 
@@ -168,27 +162,32 @@ uint8_t LoadConfigFile(HINSTANCE resourceModuleHandle)
 
 void CleanupConfigReader() 
 { 
-	CoTaskMemFree(szPath); 
+	CoTaskMemFree(szConfigFilePath); 
 	
-	if(GPtrConfigItems) //TODO Cleanup the name and value pointers for the strings
+	if(configItems.configItem) //TODO Cleanup the name and value pointers for the strings
 	{
-		for(size_t i = 0; i < GPtrConfigItemsCount; i++) 
+		for(size_t i = 0; i < configItems.configItemsCount; i++) 
 		{
-			if(&GPtrConfigItems[i] != NULL) 
+			if(&configItems.configItem[i] != NULL) 
 			{ 
-				if(GPtrConfigItems[i].name) 
+				if(configItems.configItem[i].name) 
 				{ 
-					free(GPtrConfigItems[i].name); 
+					free(configItems.configItem[i].name); 
 				}
 				
-				if(GPtrConfigItems[i].value)
+				if(configItems.configItem[i].value)
 				{
-					free(GPtrConfigItems[i].value); 
+					free(configItems.configItem[i].value); 
 				}
 			}
 		}
-		free(GPtrConfigItems); 
+		free(configItems.configItem); 
 	}
+}
+
+ConfigItems* GetConfigItems()
+{
+	return &configItems;
 }
 
 /**
@@ -244,7 +243,7 @@ BOOL LoadDefaultConfigResourceData(HINSTANCE resourceModuleHandle)
 
 BOOL WriteDefaultConfigDataToFile() 
 { 
-	FILE* configFileHandle = _wfopen(*szPath, L"w"); 
+	FILE* configFileHandle = _wfopen(*szConfigFilePath, L"w"); 
 	
 	if(configFileHandle == NULL) 
 	{ 
@@ -259,4 +258,3 @@ BOOL WriteDefaultConfigDataToFile()
 	
 	return TRUE;
 }
-

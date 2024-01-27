@@ -2,7 +2,7 @@
 
 #include "targetver.h"
 #include "config.h"
-
+#include "keyboard.h" 
 
 __declspec(dllexport) LRESULT CALLBACK ShellProc(int code, WPARAM wparam, LPARAM lparam) {
 	if (code == HSHELL_WINDOWCREATED || code == HSHELL_WINDOWDESTROYED) {
@@ -22,18 +22,10 @@ __declspec(dllexport) LRESULT CALLBACK KeyProc(int code, WPARAM wparam, LPARAM l
     if (wparam == WM_KEYDOWN && code == HC_ACTION)
     {
 		//Just example here
-        switch (key->vkCode)
-        {
-        case VK_ESCAPE:
-            puts("ESC pressed");
-            break;
-        case 'A':
-            puts("A pressed");
-            break;
-        case VK_RETURN:
-            puts("RETURN pressed");
-            break;
-        }
+        if(IsKeyboardAction(key->vkCode))
+		{
+			puts("Action performed");
+		}       
     }
 
     return CallNextHookEx(NULL, code, wparam, lparam);

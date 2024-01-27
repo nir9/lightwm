@@ -95,12 +95,13 @@ int main() {
 	tileWindows();
 	MSG msg; 
 	while (GetMessage(&msg, NULL, 0, 0) != 0) {
+		//Just going to ignore this for now TODO fix this before pull request
+
 		//if (WaitForSingleObject(windowEvent, INFINITE) == WAIT_FAILED) {
 		//	reportWin32Error(L"WaitForSingleObject");
 		//	goto cleanup;
 		//}
 
-		//Just going to ignore this for now TODO fix this before pull request
 		//Sleep(100);
 
 		//tileWindows();
