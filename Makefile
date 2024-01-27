@@ -1,12 +1,8 @@
 CC = cl
 LD = link
 
-EXEC = wm.exe
-DLL = wm_dll.dll
-
-# Boiler plate
-CFLAGS  =
-LDFLAGS =
+EXEC = lightwm.exe
+DLL = lightwm_dll.dll
 
 all: $(DLL) $(EXEC)
 
@@ -20,4 +16,4 @@ wm_dll.obj: wm_dll.c
 	$(CC) /c wm_dll.c
 
 clean:
-	del *.obj $(DLL) $(EXEC) *.lib *.exp
+	del *.obj *.exe *.dll *.lib *.exp

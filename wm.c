@@ -32,7 +32,7 @@ void ctrlc(int sig) {
 }
 
 int main() {
-	wmDll = LoadLibraryW(L"wm_dll");
+	wmDll = LoadLibraryW(L"lightwm_dll");
 	
 	if (wmDll == NULL) {
 		reportWin32Error(L"LoadLibrary of wm_dll"); 
@@ -70,7 +70,7 @@ int main() {
 			goto cleanup;
 		}
 
-		Sleep(100);
+		Sleep(200);
 
 		tileWindows();
 	}
