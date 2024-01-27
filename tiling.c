@@ -1,4 +1,5 @@
 #include "tiling.h"
+#include "error.h"
 #include <Windows.h>
 
 HWND managed[256];
@@ -37,7 +38,9 @@ void tileWindows() {
 
 	EnumChildWindows(GetDesktopWindow(), EnumChildProc, 0);
 
-	if (currentManagedIndex != 0) {
-		TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, currentManagedIndex, managed);
+	if (currentManagedIndex == 0) {
+		return;
 	}
+
+	TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, currentManagedIndex, managed);
 }

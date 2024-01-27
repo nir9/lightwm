@@ -13,6 +13,5 @@ I haven't tried building with a different VS version or building x86, but that m
 
 ## Todo
 
-- Add proper error handling and cleanup
 - Add keyboard navigation
 - Add workspaces

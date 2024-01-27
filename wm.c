@@ -7,15 +7,27 @@
 
 HHOOK hookHandle;
 HHOOK keyboardHookHandle; 
+HMODULE wmDll;
+HANDLE windowEvent;
+
+void cleanupObjects() {
+	if (hookHandle) {
+		UnhookWindowsHookEx(hookHandle);
+	}
+
+	if (wmDll) {
+		FreeLibrary(wmDll);
+	}
+
+	if (windowEvent) {
+		CloseHandle(windowEvent);
+	}
+}
 
 void ctrlc(int sig) {
-	if (!UnhookWindowsHookEx(hookHandle)) {
-		wprintf(L"[!] Error while unhooking hookHandle.\nError: %d\n", GetLastError());
-	}
+	cleanupObjects();
 	
 	puts("Exiting"); 
-
-	// TODO: More cleanup
 
 	exit(ERROR_SUCCESS);
 }
@@ -26,10 +38,10 @@ int main() {
 	 * Load Libraries and the needed functions from those libraries
 	**/
 	//----------------------------------------------
-	HMODULE wmDll = LoadLibraryW(L"wm_dll");
+	wmDll = LoadLibraryW(L"wm_dll");
 	
 	if (wmDll == NULL) {
-		reportWin32Error(L"LoadLibrary of wm_dll failed"); 
+		reportWin32Error(L"LoadLibrary of wm_dll"); 
 		return ERROR_MOD_NOT_FOUND;
 	}
 	
@@ -47,10 +59,10 @@ int main() {
 		goto cleanup; 
 	}
 
-	HANDLE windowEvent = CreateEventW(NULL, FALSE, FALSE, L"LightWMWindowEvent");
+	windowEvent = CreateEventW(NULL, FALSE, FALSE, L"LightWMWindowEvent");
 
 	if (windowEvent == NULL) {
-		reportWin32Error(L"CreateEvent failed");
+		reportWin32Error(L"CreateEvent");
 		goto cleanup;
 	}
 
@@ -75,12 +87,15 @@ int main() {
 	 * Handle a message loop
 	**/
 	//----------------------------------------------
+	tileWindows();
 	MSG msg; 
 	while (GetMessage(&msg, NULL, 0, 0) != 0) {
 		if (WaitForSingleObject(windowEvent, INFINITE) == WAIT_FAILED) {
-			reportWin32Error(L"WaitForSingleObject failed");
+			reportWin32Error(L"WaitForSingleObject");
 			goto cleanup;
 		}
+
+		Sleep(100);
 
 		tileWindows();
 		
@@ -88,14 +103,14 @@ int main() {
 		DispatchMessageW(&msg); 
 	}
 
-	Sleep(INFINITE);
-
 	//----------------------------------------------
 	/** 
 	 * Cleanup and gracefully exit
 	**/
+
 	//----------------------------------------------
 cleanup:
+	cleanupObjects();
 	if (hookHandle) {
 		UnhookWindowsHookEx(hookHandle);
 	}
