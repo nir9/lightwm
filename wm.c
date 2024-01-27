@@ -5,9 +5,14 @@
 #include "error.h"
 #include "tiling.h"
 
+//Hooks
 HHOOK hookHandle;
 HHOOK keyboardHookHandle; 
+
+//Modules
 HMODULE wmDll;
+
+//Event handles
 HANDLE windowEvent;
 
 void cleanupObjects() {
@@ -111,21 +116,7 @@ int main() {
 	//----------------------------------------------
 cleanup:
 	cleanupObjects();
-	if (hookHandle) {
-		UnhookWindowsHookEx(hookHandle);
-	}
 	
-	if (keyboardHookHandle) { 
-		UnhookWindowsHookEx(keyboardHookHandle); 
-	}
-
-	if (wmDll) {
-		FreeLibrary(wmDll);
-	}
-
-	if (windowEvent) {
-		CloseHandle(windowEvent);
-	}
 	
 
 	return EXIT_FAILURE;
