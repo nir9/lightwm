@@ -5,19 +5,25 @@ EXEC = wm.exe
 DLL = wm_dll.dll
 
 # Boiler plate
-CFLAGS  =
-LDFLAGS =
+CFLAGS  = /EHsc
+LDFLAGS = 
+
+EXE_SRCS = wm.c tiling.c error.c
+DLL_SRCS = wm_dll.c error.c config_reader.c
+
+EXE_OBJS = $(EXE_SRCS:.c=.obj)
+DLL_OBJS = $(DLL_SRCS:.c=.obj)
 
 all: $(DLL) $(EXEC)
 
-$(EXEC): wm.c
-	$(CC) wm.c tiling.c error.c config_reader.c user32.lib shell32.lib ole32.lib shlwapi.lib /link /out:$(EXEC)
+$(EXEC): $(EXE_OBJS)
+	$(CC) $(CFLAGS) /Fe:$@ $^ /link user32.lib
 
-$(DLL): wm_dll.obj
-	$(LD) wm_dll.obj user32.lib /dll /out:$(DLL)
+$(DLL): $(DLL_OBJS)
+	$(CC) $(CFLAGS) /LD /Fe:$@ $^ /link user32.lib shell32.lib ole32.lib shlwapi.lib /DEF:wm_dll.def
 
-wm_dll.obj: wm_dll.c
-	$(CC) /c wm_dll.c
+%.obj: %.c
+	$(CC) $(CFLAGS) /c /Fo:$@ $<
 
 clean:
 	del *.obj $(DLL) $(EXEC) *.lib *.exp

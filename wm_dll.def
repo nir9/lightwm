@@ -1,0 +1,4 @@
+LIBRARY wm_dll
+EXPORTS
+ShellProc
+KeyProc

@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include "error.h"
 #include "tiling.h"
-#include "config_reader.h"
 
 HHOOK hookHandle;
 HHOOK keyboardHookHandle; 
@@ -73,14 +72,6 @@ int main() {
 
 	//----------------------------------------------
 	/** 
-	 * Read the config file here
-	**/
-	//----------------------------------------------
-	LoadConfigFile(); 
-	
-
-	//----------------------------------------------
-	/** 
 	 * Handle a message loop
 	**/
 	//----------------------------------------------
@@ -121,7 +112,6 @@ cleanup:
 		CloseHandle(windowEvent);
 	}
 	
-	CleanupConfigReader(); 
 
 	return EXIT_FAILURE;
 }
