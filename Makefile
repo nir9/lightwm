@@ -4,7 +4,7 @@ LD = link
 EXEC = lightwm.exe
 DLL = lightwm_dll.dll
 
-all: $(DLL) $(EXEC)
+all: clean $(DLL) $(EXEC)
 
 $(EXEC): wm.c
 	$(CC) wm.c tiling.c error.c user32.lib /link /out:$(EXEC)
