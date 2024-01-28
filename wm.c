@@ -7,7 +7,6 @@
 
 //Hooks
 HHOOK hookHandle;
-HHOOK keyboardHookHandle; 
 
 //Modules
 HMODULE wmDll;
@@ -57,13 +56,6 @@ int main() {
 		goto cleanup; 
 	}
 	
-	FARPROC keyProc = GetProcAddress(wmDll, "KeyProc"); 
-	
-	if (keyProc == NULL) { 
-		reportWin32Error(L"GetProcAddress failed for keyboard event callback"); 
-		goto cleanup; 
-	}
-
 	windowEvent = CreateEventW(NULL, FALSE, FALSE, L"LightWMWindowEvent");
 
 	if (windowEvent == NULL) {
@@ -75,13 +67,6 @@ int main() {
 
 	if (hookHandle == NULL) {
 		reportWin32Error(L"SetWindowsHookExW failed for shell hook");
-		goto cleanup;
-	}
-	
-	keyboardHookHandle = SetWindowsHookExW(WH_KEYBOARD_LL, (HOOKPROC)keyProc, wmDll, 0); 
-	
-	if (keyboardHookHandle == NULL) { 
-		reportWin32Error(L"SetWindowsHookExW failed for keyboard hook"); 
 		goto cleanup;
 	}
 	

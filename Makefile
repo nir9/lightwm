@@ -7,7 +7,7 @@ DLL = wm_dll.dll
 RESOURCES=wm_dll_resources.obj
 
 # Boiler plate
-CFLAGS  = /EHsc
+CFLAGS  = /EHsc /Zi
 LDFLAGS = 
 
 EXE_SRCS = wm.c tiling.c error.c

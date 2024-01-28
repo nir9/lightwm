@@ -10,6 +10,7 @@
 //Some C hackery going on here
 //Just add the action to this preprocessor macro to generate the ENUM and string array
 #define FOREACH_ACTION(ACTION) \
+	ACTION(ACTION_NONE)  \
 	ACTION(WORKSPACE_1)  \
 	ACTION(WORKSPACE_2)  \
 	ACTION(WORKSPACE_3)  \

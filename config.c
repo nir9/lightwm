@@ -33,6 +33,8 @@ ConfigItems configItems;
 BOOL CreateDefaultConfigFile(HINSTANCE);
 BOOL LoadDefaultConfigResourceData(HINSTANCE);
 BOOL WriteDefaultConfigDataToFile(); 
+void trim(char* str); 
+void removeControlChars(char* str); 
 
 DWORD ReadConfigFile() 
 { 
@@ -65,17 +67,20 @@ DWORD ReadConfigFile()
 		if(strlen(line) == 0)
 			continue; 
 		
-	
+		//removeControlChars(line); 
+		
 		char* token = strtok(line, " "); 
 		size_t tokenCount = 0;
 		while(token != NULL) {
 			switch(tokenCount) {
 				case 0: 
-					configItems.configItem[lineCount].name = (char*)malloc(strlen(token));
+					configItems.configItem[lineCount].name = (char*)malloc(strlen(token) + 1);
 					strcpy(configItems.configItem[lineCount].name, token); 
+					break; 
 				case 1: 
-					configItems.configItem[lineCount].value = (char*)malloc(strlen(token)); 
+					configItems.configItem[lineCount].value = (char*)malloc(strlen(token) + 1); 
 					strcpy(configItems.configItem[lineCount].value, token); 
+					break; 
 			}
 			tokenCount++; 
 			token = strtok(NULL, " "); 
@@ -247,4 +252,31 @@ BOOL WriteDefaultConfigDataToFile()
 	fclose(configFileHandle); 
 	
 	return TRUE;
+}
+
+void strip(char* str) 
+{
+    size_t len = strlen(str);
+    char *start = str;
+    char *end = str + len - 1;
+
+    while (*start == ' ') start++;
+    while (*end == ' ') end--;
+
+    memmove(str, start, end - start + 1);
+    str[end - start + 1] = '\0';
+}
+
+void removeControlChars(char* str) {
+    int i, j = 0;
+    char temp[1024]; // Assuming the maximum length of the string is 1024
+
+    for (i = 0; str[i] != '\0'; ++i) {
+        if ((unsigned char)str[i] < 32) continue; // Skip control characters
+        temp[j] = str[i];
+        ++j;
+    }
+
+    temp[j] = '\0'; // Null terminate the new string
+    strncpy(str, temp, sizeof(temp));
 }
