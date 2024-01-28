@@ -5,8 +5,13 @@
 #include "error.h"
 #include "tiling.h"
 
+//Hooks
 HHOOK hookHandle;
+
+//Modules
 HMODULE wmDll;
+
+//Event handles
 HANDLE windowEvent;
 
 void cleanupObjects() {
@@ -32,6 +37,11 @@ void ctrlc(int sig) {
 }
 
 int main() {
+	//----------------------------------------------
+	/** 
+	 * Load Libraries and the needed functions from those libraries
+	**/
+	//----------------------------------------------
 	wmDll = LoadLibraryW(L"lightwm_dll");
 	
 	if (wmDll == NULL) {
@@ -42,10 +52,10 @@ int main() {
 	FARPROC shellProc = GetProcAddress(wmDll, "ShellProc");
 
 	if (shellProc == NULL) { 
-		reportWin32Error(L"GetProcAddress");
+		reportWin32Error(L"GetProcAddress failed for shell even callback");
 		goto cleanup; 
 	}
-
+	
 	windowEvent = CreateEventW(NULL, FALSE, FALSE, L"LightWMWindowEvent");
 
 	if (windowEvent == NULL) {
@@ -56,27 +66,43 @@ int main() {
 	hookHandle = SetWindowsHookExW(WH_SHELL, (HOOKPROC)shellProc, wmDll, 0);
 
 	if (hookHandle == NULL) {
-		reportWin32Error(L"SetWindowsHookExW");
+		reportWin32Error(L"SetWindowsHookExW failed for shell hook");
 		goto cleanup;
 	}
-
+	
 	signal(SIGINT, ctrlc);
 
+	//----------------------------------------------
+	/** 
+	 * Handle a message loop
+	**/
+	//----------------------------------------------
 	tileWindows();
+	MSG msg; 
+	while (GetMessage(&msg, NULL, 0, 0) != 0) {
+		//TODO Need to modify this wait so the program can handle hotkeys
+		// if (WaitForSingleObject(windowEvent, INFINITE) == WAIT_FAILED) {
+			// reportWin32Error(L"WaitForSingleObject");
+			// goto cleanup;
+		// }
 
-	for (;;) {
-		if (WaitForSingleObject(windowEvent, INFINITE) == WAIT_FAILED) {
-			reportWin32Error(L"WaitForSingleObject");
-			goto cleanup;
-		}
-
-		Sleep(200);
+		Sleep(100);
 
 		tileWindows();
+		
+		TranslateMessage(&msg); 
+		DispatchMessageW(&msg); 
 	}
 
+	//----------------------------------------------
+	/** 
+	 * Cleanup and gracefully exit
+	**/
+	//----------------------------------------------
 cleanup:
 	cleanupObjects();
+	
+	
 
 	return EXIT_FAILURE;
 }

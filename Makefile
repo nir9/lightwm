@@ -1,19 +1,34 @@
 CC = cl
 LD = link
+RC = rc 
 
 EXEC = lightwm.exe
 DLL = lightwm_dll.dll
+RESOURCES=wm_dll_resources.obj
 
-all: clean $(DLL) $(EXEC)
+# Boiler plate
+CFLAGS  = /EHsc /Zi
+LDFLAGS = 
 
-$(EXEC): wm.c
-	$(CC) wm.c tiling.c error.c user32.lib /link /out:$(EXEC)
+EXE_SRCS = wm.c tiling.c error.c
+DLL_SRCS = error.c config.c keyboard.c wm_dll.c
 
-$(DLL): wm_dll.obj
-	$(LD) wm_dll.obj user32.lib /dll /out:$(DLL)
+EXE_OBJS = $(EXE_SRCS:.c=.obj)
+DLL_OBJS = $(DLL_SRCS:.c=.obj)
 
-wm_dll.obj: wm_dll.c
-	$(CC) /c wm_dll.c
+all: $(DLL) $(EXEC)
+
+$(EXEC): $(EXE_OBJS) 
+	$(CC) $(CFLAGS) /Fe:$@ $^ /link user32.lib
+
+$(DLL): $(DLL_OBJS) $(RESOURCES)
+	$(CC) $(CFLAGS) /LD /Fe:$@ $^ /link user32.lib shell32.lib ole32.lib shlwapi.lib /DEF:wm_dll.def
+
+%.obj: %.c
+	$(CC) $(CFLAGS) /c /Fo:$@ $<
+
+%.obj: %.rc
+	$(RC) /fo $@ $<
 
 clean:
 	del *.obj *.exe *.dll *.lib *.exp

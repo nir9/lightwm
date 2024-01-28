@@ -4,3 +4,9 @@
 *.exp
 *.exe
 tags
+
+.idea/
+.vs/
+wm.ilk
+
+*.pdb
