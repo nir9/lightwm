@@ -80,16 +80,15 @@ int main() {
 	tileWindows();
 	MSG msg; 
 	while (GetMessage(&msg, NULL, 0, 0) != 0) {
-		//Just going to ignore this for now TODO fix this before pull request
+		//TODO Need to modify this wait so the program can handle hotkeys
+		// if (WaitForSingleObject(windowEvent, INFINITE) == WAIT_FAILED) {
+			// reportWin32Error(L"WaitForSingleObject");
+			// goto cleanup;
+		// }
 
-		//if (WaitForSingleObject(windowEvent, INFINITE) == WAIT_FAILED) {
-		//	reportWin32Error(L"WaitForSingleObject");
-		//	goto cleanup;
-		//}
+		Sleep(100);
 
-		//Sleep(100);
-
-		//tileWindows();
+		tileWindows();
 		
 		TranslateMessage(&msg); 
 		DispatchMessageW(&msg); 
@@ -99,7 +98,6 @@ int main() {
 	/** 
 	 * Cleanup and gracefully exit
 	**/
-
 	//----------------------------------------------
 cleanup:
 	cleanupObjects();

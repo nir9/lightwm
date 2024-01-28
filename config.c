@@ -18,6 +18,10 @@
 #include "error.h" 
 #include "resource.h"
 
+#include "debug.h"
+
+#define BUFF_SIZE 65536
+
 /**
  * Config reader global vars
  **/
@@ -35,7 +39,8 @@ BOOL LoadDefaultConfigResourceData(HINSTANCE);
 BOOL WriteDefaultConfigDataToFile(); 
 void trim(char* str); 
 void removeControlChars(char* str); 
-
+size_t GetLineCount(FILE* file);
+ 
 DWORD ReadConfigFile() 
 { 
 	//Try to open the config file based on the path
@@ -45,63 +50,46 @@ DWORD ReadConfigFile()
 	{
 		SetLastError(ERROR_INVALID_HANDLE); 
 		reportWin32Error(L"Config file could not be opened"); 
+		CleanupConfigReader();
 		return ERROR_INVALID_HANDLE; 
 	}
 	
-	char line[256]; //TODO must have a more clever way of getting a line length
-	uint32_t index = 0; 
-	size_t lineCount = 0; 
-	
-	configItems.configItem = (ConfigItem*)malloc(sizeof(ConfigItem)); 
-	configItems.configItem[0].name = (char*)malloc(sizeof(char) * 256);
-	configItems.configItem[0].value = (char*)malloc(sizeof(char) * 256);
-	
+	char line[BUFF_SIZE]; //TODO must have a more clever way of getting a line length
+		
+	configItems.configItem = (ConfigItem*)malloc(sizeof(ConfigItem) * GetLineCount(configFileHandle) + 1); 
+	configItems.configItemsCount = GetLineCount(configFileHandle) + 1; 
+
 	if(configItems.configItem == NULL) 
 	{ 
-		reportWin32Error(L"Unable to allocate memory"); 
+		reportWin32Error(L"Allocation ConfigItem struct"); 
 		CleanupConfigReader(); 
 		return ERROR_NOT_ENOUGH_MEMORY;
 	}
 	
-	while(fgets(line, sizeof(line), configFileHandle)) { 
+	for(size_t lineCount = 0; fgets(line, sizeof(line), configFileHandle); lineCount++) { 
 		if(strlen(line) == 0)
 			continue; 
 		
-		//removeControlChars(line); 
-		
+		//Get the first half of the line
 		char* token = strtok(line, " "); 
-		size_t tokenCount = 0;
-		while(token != NULL) {
-			switch(tokenCount) {
-				case 0: 
-					configItems.configItem[lineCount].name = (char*)malloc(strlen(token) + 1);
-					strcpy(configItems.configItem[lineCount].name, token); 
-					break; 
-				case 1: 
-					configItems.configItem[lineCount].value = (char*)malloc(strlen(token) + 1); 
-					strcpy(configItems.configItem[lineCount].value, token); 
-					break; 
-			}
-			tokenCount++; 
-			token = strtok(NULL, " "); 
-		}
+		configItems.configItem[lineCount].name = (char*)malloc(strlen(token) + 1);
+		strncpy(configItems.configItem[lineCount].name, token, strlen(token) + 1); 
 		
-		//Grab a clean copy of the old address before doing a realloc in case of failure. 
-		ConfigItem* ptrClean = configItems.configItem; 
-		configItems.configItem = (ConfigItem*)realloc(configItems.configItem, sizeof(ConfigItem) * ((++lineCount) + 1)); 
+		//Get the second half of the line
+		token = strtok(NULL, " "); 
+		removeControlChars(token);
+		configItems.configItem[lineCount].value = (char*)malloc(strlen(token) + 1); 
+		strncpy(configItems.configItem[lineCount].value, token, strlen(token) + 1);
 		
-		if(configItems.configItem == NULL)
-		{
-			assert(ptrClean != NULL);
-			free(ptrClean); 
-			reportWin32Error(L"Unable to reallocate memory"); 
-			CleanupConfigReader();
-			return ERROR_INVALID_BLOCK; //TODO This might not be the best error code to return here 
-		}
+		DEBUG_PRINT("DEBUG config.c: Name: %s Value: %s Name LEN: %lu Value LEN: %lu Count: %lu\n", 
+			configItems.configItem[lineCount].name, 
+			configItems.configItem[lineCount].value,
+			strlen(configItems.configItem[lineCount].name), 
+			strlen(configItems.configItem[lineCount].value), 
+			lineCount); 
 	}
 	
-	configItems.configItemsCount = lineCount; 
-		
+	
 	fclose(configFileHandle); 
 	
 	return ERROR_SUCCESS;
@@ -279,4 +267,28 @@ void removeControlChars(char* str) {
 
     temp[j] = '\0'; // Null terminate the new string
     strncpy(str, temp, sizeof(temp));
+}
+
+size_t GetLineCount(FILE* file) 
+{
+	char buf[BUFF_SIZE];
+    int counter = 0;
+    for(;;)
+    {
+        size_t res = fread(buf, 1, BUFF_SIZE, file);
+        if (ferror(file))
+            return -1;
+
+        int i;
+        for(i = 0; i < res; i++)
+            if (buf[i] == '\n')
+                counter++;
+
+        if (feof(file))
+            break;
+    }
+	
+	fseek(file, 0, SEEK_SET); 
+
+    return counter;
 }

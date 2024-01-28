@@ -5,6 +5,9 @@
 #include "keyboard.h" 
 #include "config.h"
 
+#include "debug.h"
+
+
 HWND hwnd;
 const char g_szClassName[] = "HiddenWindowClass";
 
@@ -23,30 +26,31 @@ __declspec(dllexport) LRESULT CALLBACK ShellProc(int code, WPARAM wparam, LPARAM
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
         case WM_HOTKEY:
+			DEBUG_PRINT("DEBUG wm_dll.c L26: wParam = %i\n", wParam);  
             switch (wParam) {
                 case WORKSPACE_1:
-					puts("Switch to workspace 1"); 
+					puts("Switch to workspace 1"); //TODO 
                     break;
                 case WORKSPACE_2:
-					puts("Switch to workspace 2"); 
+					puts("Switch to workspace 2"); //TODO 
                     break;
 				case WORKSPACE_3:
-					puts("Switch to workspace 3"); 
+					puts("Switch to workspace 3"); //TODO
 					break; 
 				case WORKSPACE_4:
-					puts("Switch to workspace 4"); 
+					puts("Switch to workspace 4"); //TODO 
 					break; 
 				case WINDOW_UP:
-					puts("Focus on window above current"); 
+					puts("Focus on window above current"); //TODO 
 					break; 
 				case WINDOW_DOWN:
-					puts("Focus on window below current"); 
+					puts("Focus on window below current"); //TODO
 					break;
 				case WINDOW_LEFT:
-					puts("Focus on window to the left of current"); 
+					puts("Focus on window to the left of current"); //TODO 
 					break;
 				case WINDOW_RIGHT:
-					puts("Focus on window to the right of current"); 
+					puts("Focus on window to the right of current"); //TODO
 					break;
             }
             break;
