@@ -4,3 +4,5 @@
 *.exp
 *.exe
 tags
+zig-out/
+zig-cache/
