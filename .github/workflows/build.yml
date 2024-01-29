@@ -1,0 +1,22 @@
+name: Build Release
+on: [push, workflow_dispatch]
+
+jobs:
+
+  build:
+    permissions: write-all
+    runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+        #      - name: Setup Visual Studio Build Environment
+        #        run: |
+        #          & "C:/Program Files/Microsoft/Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvarsall.bat"
+        #
+        #      - name: Build Executable and DLL
+        #        run: nmake
+
+      #- name: Create Release
+      #  run: gh release create ${{ github.sha }} ./wm.exe ./wm_dll.dll -n "Version ${{ github.sha }}"

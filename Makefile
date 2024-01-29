@@ -2,8 +2,8 @@ CC = cl
 LD = link
 RC = rc 
 
-EXEC = wm.exe
-DLL = wm_dll.dll
+EXEC = lightwm.exe
+DLL = lightwm_dll.dll
 RESOURCES=wm_dll_resources.obj
 
 # Boiler plate
@@ -31,4 +31,4 @@ $(DLL): $(DLL_OBJS) $(RESOURCES)
 	$(RC) /fo $@ $<
 
 clean:
-	del *.obj $(DLL) $(EXEC) *.lib *.exp
+	del *.obj *.exe *.dll *.lib *.exp

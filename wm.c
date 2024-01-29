@@ -42,7 +42,7 @@ int main() {
 	 * Load Libraries and the needed functions from those libraries
 	**/
 	//----------------------------------------------
-	wmDll = LoadLibraryW(L"wm_dll");
+	wmDll = LoadLibraryW(L"lightwm_dll");
 	
 	if (wmDll == NULL) {
 		reportWin32Error(L"LoadLibrary of wm_dll"); 
