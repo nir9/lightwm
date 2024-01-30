@@ -1,9 +1,3 @@
-/**
- * keyboard.c Handles the keyboard controls
- * 
- * Demetry Romanowski
- * demetryromanowski@gmail.com
- **/ 
 #include <Windows.h> 
 #include <stdint.h> 
 #include <assert.h>
@@ -13,24 +7,15 @@
 
 #include "debug.h" 
 
-//Keyboard vars
+UINT GetModifier(char* value); 
+UINT GetKeyCode(char* value); 
+void AddKeyboardKeybind(enum Action action, UINT modifier, UINT keyCode); 
 
-//Private definitions
-uint8_t GetModifier(char* value); 
-char GetKeyCode(char* value); 
-void AddKeyboardKeybind(enum Action action, uint8_t modifier, uint8_t keyCode); 
-
-HWND hotKeyWindow;
-
-//Public implementations
-BOOL InitializeKeyboardConfig(HWND hwnd, ConfigItems* configItems) 
+BOOL InitializeKeyboardConfig(ConfigItems* configItems) 
 { 
 	assert(configItems != NULL); 
 	assert(configItems->configItem != NULL); 
 	assert(configItems->configItemsCount != 0);
-	assert(hwnd != NULL);
-	
-	hotKeyWindow = hwnd; 
 	
 	for(size_t i = 0; i < configItems->configItemsCount; i++) { 
 		//TODO Modify the macro to use generate all these automatically.
@@ -49,37 +34,35 @@ BOOL InitializeKeyboardConfig(HWND hwnd, ConfigItems* configItems)
 
 void CleanupKeyboard() 
 {
-	UnregisterHotKey(hotKeyWindow, WORKSPACE_1); 
-	UnregisterHotKey(hotKeyWindow, WORKSPACE_2); 
-	UnregisterHotKey(hotKeyWindow, WORKSPACE_3); 
-	UnregisterHotKey(hotKeyWindow, WORKSPACE_4); 
-	UnregisterHotKey(hotKeyWindow, WINDOW_UP); 
-	UnregisterHotKey(hotKeyWindow, WINDOW_DOWN); 
-	UnregisterHotKey(hotKeyWindow, WINDOW_LEFT); 
-	UnregisterHotKey(hotKeyWindow, WINDOW_RIGHT); 
+	UnregisterHotKey(NULL, WORKSPACE_1); 
+	UnregisterHotKey(NULL, WORKSPACE_2); 
+	UnregisterHotKey(NULL, WORKSPACE_3); 
+	UnregisterHotKey(NULL, WORKSPACE_4); 
+	UnregisterHotKey(NULL, WINDOW_UP); 
+	UnregisterHotKey(NULL, WINDOW_DOWN); 
+	UnregisterHotKey(NULL, WINDOW_LEFT); 
+	UnregisterHotKey(NULL, WINDOW_RIGHT); 
 }
 
-//Private implementations
-uint8_t GetModifier(char* value) 
+UINT GetModifier(char* value) 
 { 	
-	// TODO 
+	// TODO handle the different modifier values
 	// MOD_ALT
 	// MOD_CONTROL
-	// MOD_NOREPEAT
 	// MOD_SHIFT
 	// MOD_WIN
 	return MOD_ALT; 
 }
 
-char GetKeyCode(char* value) 
+UINT GetKeyCode(char* value) 
 { 
-	// printf("DEBUG keyboard.c L146: %c\n", value[strlen(value) - 1]);
-	return value[strlen(value) - 1];
+	DEBUG_PRINT("GetKeyCode char value '%c'", value[strlen(value) - 1]);
+	return VkKeyScanEx(value[strlen(value) - 1], GetKeyboardLayout(0));
 }
 
-void AddKeyboardKeybind(enum Action action, uint8_t modifier, char keyCode)
+void AddKeyboardKeybind(enum Action action, UINT modifier, UINT keyCode)
 {
-	if(!RegisterHotKey(hotKeyWindow, action, modifier | MOD_NOREPEAT, keyCode)) 
+	if(!RegisterHotKey(NULL, action, modifier | MOD_NOREPEAT, keyCode)) 
 	{ 
 		if(GetLastError() == ERROR_HOTKEY_ALREADY_REGISTERED) 
 		{
@@ -90,5 +73,5 @@ void AddKeyboardKeybind(enum Action action, uint8_t modifier, char keyCode)
 		MessageBox(NULL, "Failed to register hotkey.", "Error", MB_OK | MB_ICONERROR);
 	}
 	
-	DEBUG_PRINT("DEBUG keyboard.c: Registered %s hotkey\n", ACTION_STRINGS[action]);  
+	DEBUG_PRINT("Registered %s hotkey", ACTION_STRINGS[action]);  
 }

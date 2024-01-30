@@ -1,3 +1,4 @@
-LIBRARY wm_dll
+LIBRARY lightwm_dll
 EXPORTS
 ShellProc
+HotkeyProc

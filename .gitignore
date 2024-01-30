@@ -3,12 +3,12 @@
 *.obj
 *.exp
 *.exe
+*.pdb
+*.ilk
+
 tags
 
 .idea/
 .vs/
-wm.ilk
-
-*.pdb
-
-*.ilk
+debug/
+release/ 

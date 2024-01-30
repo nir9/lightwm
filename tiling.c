@@ -42,5 +42,6 @@ void tileWindows() {
 		return;
 	}
 
-	TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, currentManagedIndex, managed);
+	//TODO UNCOMMENT BEFORE MASTER MERGE
+	//TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, currentManagedIndex, managed);
 }

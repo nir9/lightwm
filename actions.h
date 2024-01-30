@@ -1,10 +1,3 @@
-/** 
- * Actions
- *
- * Demetry Romanowski
- * demetryromanowski@gmail.com
- **/ 
-
 #pragma once
 
 //Just add the action to this preprocessor macro to generate the ENUM and string array

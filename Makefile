@@ -1,34 +1,84 @@
-CC = cl
-LD = link
-RC = rc 
+CC     = cl
+LD     = link
+RC     = rc
+CFLAGS = /EHsc
 
-EXEC = lightwm.exe
-DLL = lightwm_dll.dll
-RESOURCES=wm_dll_resources.obj
+EXE_SRCS = wm.c tiling.c error.c config.c keyboard.c
+DLL_SRCS = error.c wm_dll.c
+EXE_NAME = lightwm.exe
+DLL_NAME = lightwm_dll.dll
+EXE_RC = wm_resources.obj
+DLL_RC = 
 
-# Boiler plate
-CFLAGS  = /EHsc /Zi
-LDFLAGS = 
+DBGDIR = debug
+DBGEXE = $(DBGDIR)/$(EXE_NAME)
+DBG_EXE_OBJS = $(addprefix $(DBGDIR)/, $(EXE_SRCS:.c=.obj))
+DBG_DLL_OBJS = $(addprefix $(DBGDIR)/, $(DLL_SRCS:.c=.obj))
+DBGDLL = $(DBGDIR)/$(DLL_NAME)
+DBGCFLAGS = $(CFLAGS) /DDEBUG /Zi
 
-EXE_SRCS = wm.c tiling.c error.c
-DLL_SRCS = error.c config.c keyboard.c wm_dll.c
+RELDIR = release
+RELEXE = $(RELDIR)/$(EXE_NAME)
+REL_EXE_OBJS = $(addprefix $(RELDIR)/, $(EXE_SRCS:.c=.obj))
+REL_DLL_OBJS = $(addprefix $(RELDIR)/, $(DLL_SRCS:.c=.obj))
+RELDLL = $(RELDIR)/$(DLL_NAME)
+RELCFLAGS = $(CFLAGS) /Ox
+ 
 
-EXE_OBJS = $(EXE_SRCS:.c=.obj)
-DLL_OBJS = $(DLL_SRCS:.c=.obj)
+.PHONY: all clean debug prep release
 
-all: $(DLL) $(EXEC)
+# Default build
+all: clean prep release
 
-$(EXEC): $(EXE_OBJS) 
-	$(CC) $(CFLAGS) /Fe:$@ $^ /link user32.lib
+#
+# Debug rules
+#
+debug: clean prep $(DBGEXE) $(DBGDLL)
 
-$(DLL): $(DLL_OBJS) $(RESOURCES)
-	$(CC) $(CFLAGS) /LD /Fe:$@ $^ /link user32.lib shell32.lib ole32.lib shlwapi.lib /DEF:wm_dll.def
+$(DBGEXE): $(DBG_EXE_OBJS) $(DBGDIR)/$(EXE_RC)
+	$(CC) $(DBGCFLAGS) /Fe:$@ $^ /link user32.lib shell32.lib ole32.lib shlwapi.lib
 
-%.obj: %.c
-	$(CC) $(CFLAGS) /c /Fo:$@ $<
+$(DBGDLL): $(DBG_DLL_OBJS)
+	$(CC) $(DBGCFLAGS) /Fe:$@ $^ /LD /link user32.lib /DEF:wm_dll.def
 
-%.obj: %.rc
+$(DBGDIR)/%.obj: %.c
+	$(CC) $(DBGCFLAGS) /c /Fo:$@ $<
+
+$(DBGDIR)/%.obj: %.rc
 	$(RC) /fo $@ $<
 
+#
+# Release rules
+#
+release: prep $(RELEXE) $(RELDLL)
+
+$(RELEXE): $(REL_EXE_OBJS) $(RELDIR)/$(EXE_RESS)
+	$(CC) $(RELCFLAGS) /Fe:$@ $^ /link user32.lib shell32.lib ole32.lib shlwapi.lib
+
+$(RELDLL): $(REL_DLL_OBJS)
+	$(CC) $(RELCFLAGS) /Fe:$@ $^ /LD /link user32.lib /DEF:wm_dll.def
+
+$(RELDIR)/%.obj: %.c
+	$(CC) $(RELCFLAGS) /c /Fo:$@ $<
+
+$(RELDIR)/%.obj: %.rc
+	$(RC) /fo $@ $<
+
+#
+# Prep and clean rules
+#
+prep:
+	@echo off > temp.bat && \
+	echo IF NOT EXIST $(DBGDIR) mkdir $(DBGDIR) >> temp.bat && \
+	echo IF NOT EXIST $(RELDIR) mkdir $(RELDIR) >> temp.bat && \
+	temp.bat && \
+	del temp.bat
+
 clean:
-	del *.obj *.exe *.dll *.lib *.exp
+	@echo off > temp.bat && \
+	echo IF EXIST $(DBGDIR) del /S /Q $(DBGDIR) >> temp.bat && \
+	echo IF EXIST $(RELDIR) del /S /Q $(RELDIR) >> temp.bat && \
+	echo IF EXIST $(DBGDIR) rd /S /Q $(DBGDIR) >> temp.bat && \
+	echo IF EXIST $(RELDIR) rd /S /Q $(RELDIR) >> temp.bat && \
+	temp.bat && \
+	del temp.bat

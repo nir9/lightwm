@@ -1,10 +1,3 @@
-/**
- * Config Reader and Parser
- * This program will read the config for lightwm in the appdata directory
- * 
- * Demetry Romanowski
- * demetryromanowski@gmail.com
- **/ 
 #include "config.h" 
 
 #include <Windows.h> 
@@ -22,18 +15,12 @@
 
 #define BUFF_SIZE 65536
 
-/**
- * Config reader global vars
- **/
 PWSTR szConfigFilePath[MAX_PATH]; 
 char* defaultConfigData = NULL; 
 
 //Should probably create a meta structure that holds the total count for now just another global variable
 ConfigItems configItems; 
 
-/**
- * Private prototypes here
-**/
 BOOL CreateDefaultConfigFile(HINSTANCE);
 BOOL LoadDefaultConfigResourceData(HINSTANCE);
 BOOL WriteDefaultConfigDataToFile(); 
@@ -48,7 +35,6 @@ DWORD ReadConfigFile()
 	
 	if(configFileHandle == NULL) 
 	{
-		SetLastError(ERROR_INVALID_HANDLE); 
 		reportWin32Error(L"Config file could not be opened"); 
 		CleanupConfigReader();
 		return ERROR_INVALID_HANDLE; 
@@ -61,14 +47,17 @@ DWORD ReadConfigFile()
 
 	if(configItems.configItem == NULL) 
 	{ 
-		reportWin32Error(L"Allocation ConfigItem struct"); 
+		reportWin32Error(L"Allocation ConfigItem memory"); 
 		CleanupConfigReader(); 
 		return ERROR_NOT_ENOUGH_MEMORY;
 	}
 	
-	for(size_t lineCount = 0; fgets(line, sizeof(line), configFileHandle); lineCount++) { 
+	for(size_t lineCount = 0; fgets(line, sizeof(line), configFileHandle); lineCount++) 
+	{ 
 		if(strlen(line) == 0)
+		{
 			continue; 
+		}
 		
 		//Get the first half of the line
 		char* token = strtok(line, " "); 
@@ -81,7 +70,7 @@ DWORD ReadConfigFile()
 		configItems.configItem[lineCount].value = (char*)malloc(strlen(token) + 1); 
 		strncpy(configItems.configItem[lineCount].value, token, strlen(token) + 1);
 		
-		DEBUG_PRINT("DEBUG config.c: Name: %s Value: %s Name LEN: %lu Value LEN: %lu Count: %lu\n", 
+		DEBUG_PRINT("Name: %s Value: %s Name LEN: %lu Value LEN: %lu Count: %lu", 
 			configItems.configItem[lineCount].name, 
 			configItems.configItem[lineCount].value,
 			strlen(configItems.configItem[lineCount].name), 
@@ -101,7 +90,6 @@ void GetConfigFilePath()
 	HRESULT getAppDataPathResult = SHGetKnownFolderPath(&FOLDERID_RoamingAppData, 0, NULL, szConfigFilePath); 
 	
 	if(!SUCCEEDED(getAppDataPathResult)) { 
-		SetLastError(ERROR_PATH_NOT_FOUND); //SHGetKnownFolderPath does not set an error on fail so we set it manually
 		reportWin32Error(L"Could not get the users appdata directory"); 
 		CoTaskMemFree(szConfigFilePath); 
 		exit(ERROR_PATH_NOT_FOUND);
@@ -132,7 +120,6 @@ uint8_t LoadConfigFile(HINSTANCE resourceModuleHandle)
 	{
 		if(!CreateDefaultConfigFile(resourceModuleHandle)) 
 		{ 
-			SetLastError(ERROR_RESOURCE_NOT_AVAILABLE); 
 			reportWin32Error(L"Create a default config file"); 
 			return ERROR_RESOURCE_NOT_AVAILABLE; //TODO Maybe find a better error code here
 		}
@@ -179,10 +166,14 @@ ConfigItems* GetConfigItems()
 BOOL CreateDefaultConfigFile(HINSTANCE resourceModuleHandle) 
 {
 	if(!LoadDefaultConfigResourceData(resourceModuleHandle)) 
+	{
 		return FALSE;
+	}
 	
 	if(!WriteDefaultConfigDataToFile())
+	{
 		return FALSE; 
+	}
 	
 	return TRUE; 
 }
@@ -248,18 +239,27 @@ void strip(char* str)
     char *start = str;
     char *end = str + len - 1;
 
-    while (*start == ' ') start++;
-    while (*end == ' ') end--;
+    while (*start == ' ') 
+	{
+		start++;
+	}
+	
+    while (*end == ' ') 
+	{
+		end--;
+	}
 
     memmove(str, start, end - start + 1);
     str[end - start + 1] = '\0';
 }
 
-void removeControlChars(char* str) {
+void removeControlChars(char* str) 
+{
     int i, j = 0;
     char temp[1024]; // Assuming the maximum length of the string is 1024
 
-    for (i = 0; str[i] != '\0'; ++i) {
+    for (i = 0; str[i] != '\0'; ++i) 
+	{
         if ((unsigned char)str[i] < 32) continue; // Skip control characters
         temp[j] = str[i];
         ++j;
@@ -277,15 +277,23 @@ size_t GetLineCount(FILE* file)
     {
         size_t res = fread(buf, 1, BUFF_SIZE, file);
         if (ferror(file))
-            return -1;
+		{
+			return -1;
+		}
 
         int i;
         for(i = 0; i < res; i++)
-            if (buf[i] == '\n')
+		{
+			if (buf[i] == '\n')
+			{
                 counter++;
+			}
+		}
 
         if (feof(file))
-            break;
+		{
+			break;
+		}
     }
 	
 	fseek(file, 0, SEEK_SET); 
