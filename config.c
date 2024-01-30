@@ -21,14 +21,14 @@ char* defaultConfigData = NULL;
 //Should probably create a meta structure that holds the total count for now just another global variable
 ConfigItems configItems; 
 
-BOOL CreateDefaultConfigFile(HINSTANCE);
-BOOL LoadDefaultConfigResourceData(HINSTANCE);
-BOOL WriteDefaultConfigDataToFile(); 
+BOOL createDefaultConfigFile(HINSTANCE);
+BOOL loadDefaultConfigResourceData(HINSTANCE);
+BOOL writeDefaultConfigDataToFile(); 
 void trim(char* str); 
 void removeControlChars(char* str); 
-size_t GetLineCount(FILE* file);
+size_t getLineCount(FILE* file);
  
-DWORD ReadConfigFile() 
+DWORD readConfigFile() 
 { 
 	//Try to open the config file based on the path
 	FILE* configFileHandle = _wfopen(*szConfigFilePath, L"r"); 
@@ -36,19 +36,19 @@ DWORD ReadConfigFile()
 	if(configFileHandle == NULL) 
 	{
 		reportWin32Error(L"Config file could not be opened"); 
-		CleanupConfigReader();
+		cleanupConfigReader();
 		return ERROR_INVALID_HANDLE; 
 	}
 	
 	char line[BUFF_SIZE]; //TODO must have a more clever way of getting a line length
 		
-	configItems.configItem = (ConfigItem*)malloc(sizeof(ConfigItem) * GetLineCount(configFileHandle) + 1); 
-	configItems.configItemsCount = GetLineCount(configFileHandle) + 1; 
+	configItems.configItem = (ConfigItem*)malloc(sizeof(ConfigItem) * getLineCount(configFileHandle) + 1); 
+	configItems.configItemsCount = getLineCount(configFileHandle) + 1; 
 
 	if(configItems.configItem == NULL) 
 	{ 
 		reportWin32Error(L"Allocation ConfigItem memory"); 
-		CleanupConfigReader(); 
+		cleanupConfigReader(); 
 		return ERROR_NOT_ENOUGH_MEMORY;
 	}
 	
@@ -84,7 +84,7 @@ DWORD ReadConfigFile()
 	return ERROR_SUCCESS;
 }
 
-void GetConfigFilePath() 
+void getConfigFilePath() 
 { 
 	//TODO: We don't check other results possible results, i.e E_FAIL
 	HRESULT getAppDataPathResult = SHGetKnownFolderPath(&FOLDERID_RoamingAppData, 0, NULL, szConfigFilePath); 
@@ -112,25 +112,25 @@ void GetConfigFilePath()
 	}
 }
 
-uint8_t LoadConfigFile(HINSTANCE resourceModuleHandle) 
+uint8_t loadConfigFile(HINSTANCE resourceModuleHandle) 
 { 
-	GetConfigFilePath();
+	getConfigFilePath();
 
 	if(!PathFileExistsW(*szConfigFilePath))
 	{
-		if(!CreateDefaultConfigFile(resourceModuleHandle)) 
+		if(!createDefaultConfigFile(resourceModuleHandle)) 
 		{ 
 			reportWin32Error(L"Create a default config file"); 
 			return ERROR_RESOURCE_NOT_AVAILABLE; //TODO Maybe find a better error code here
 		}
 	}
 	
-	ReadConfigFile();
+	readConfigFile();
 
 	return ERROR_SUCCESS; 
 }
 
-void CleanupConfigReader() 
+void cleanupConfigReader() 
 { 
 	CoTaskMemFree(szConfigFilePath); 
 	
@@ -155,7 +155,7 @@ void CleanupConfigReader()
 	}
 }
 
-ConfigItems* GetConfigItems()
+ConfigItems* getConfigItems()
 {
 	return &configItems;
 }
@@ -163,14 +163,14 @@ ConfigItems* GetConfigItems()
 /**
  * Private definitions here
  **/
-BOOL CreateDefaultConfigFile(HINSTANCE resourceModuleHandle) 
+BOOL createDefaultConfigFile(HINSTANCE resourceModuleHandle) 
 {
-	if(!LoadDefaultConfigResourceData(resourceModuleHandle)) 
+	if(!loadDefaultConfigResourceData(resourceModuleHandle)) 
 	{
 		return FALSE;
 	}
 	
-	if(!WriteDefaultConfigDataToFile())
+	if(!writeDefaultConfigDataToFile())
 	{
 		return FALSE; 
 	}
@@ -178,7 +178,7 @@ BOOL CreateDefaultConfigFile(HINSTANCE resourceModuleHandle)
 	return TRUE; 
 }
 
-BOOL LoadDefaultConfigResourceData(HINSTANCE resourceModuleHandle)
+BOOL loadDefaultConfigResourceData(HINSTANCE resourceModuleHandle)
 { 
 	
 	HRSRC hRes = FindResource(resourceModuleHandle, MAKEINTRESOURCE(IDR_DEFAULT_CONFIG), RT_RCDATA); 
@@ -215,7 +215,7 @@ BOOL LoadDefaultConfigResourceData(HINSTANCE resourceModuleHandle)
 	return TRUE; 
 }
 
-BOOL WriteDefaultConfigDataToFile() 
+BOOL writeDefaultConfigDataToFile() 
 { 
 	FILE* configFileHandle = _wfopen(*szConfigFilePath, L"w"); 
 	
@@ -269,7 +269,7 @@ void removeControlChars(char* str)
     strncpy(str, temp, sizeof(temp));
 }
 
-size_t GetLineCount(FILE* file) 
+size_t getLineCount(FILE* file) 
 {
 	char buf[BUFF_SIZE];
     int counter = 0;

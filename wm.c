@@ -32,8 +32,8 @@ void cleanupObjects() {
 		CloseHandle(windowEvent);
 	}
 	
-	CleanupConfigReader();
-	CleanupKeyboard(); 
+	cleanupConfigReader();
+	cleanupKeyboard(); 
 }
 
 void ctrlc(int sig) {
@@ -84,13 +84,13 @@ int main() {
 	signal(SIGINT, ctrlc);
  
 	//Load the configuration
-	if(LoadConfigFile(NULL) != ERROR_SUCCESS) 
+	if(loadConfigFile(NULL) != ERROR_SUCCESS) 
 	{ 
 		reportWin32Error(L"Load config file");
 		goto cleanup; 
 	}
 	
-	if(!InitializeKeyboardConfig(GetConfigItems())) 
+	if(!initializeKeyboardConfig(getConfigItems())) 
 	{ 
 		reportWin32Error(L"Setup keyboard config"); 
 		goto cleanup; 
@@ -108,9 +108,6 @@ int main() {
 			if(ret != ERROR_SUCCESS) { 
 				DEBUG_PRINT("HotKey was unhandled! Ret: %i", ret); 
 			}
-			
-			TranslateMessage(&msg); 
-			DispatchMessageW(&msg); 
 			continue;
 		} else if (WaitForSingleObject(windowEvent, INFINITE) == WAIT_FAILED) {
 			reportWin32Error(L"WaitForSingleObject");
@@ -120,9 +117,6 @@ int main() {
 		Sleep(100);
 
 		tileWindows();
-	
-		TranslateMessage(&msg); 
-		DispatchMessageW(&msg); 
 	}
 
 cleanup:

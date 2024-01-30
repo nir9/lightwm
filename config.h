@@ -15,6 +15,6 @@ typedef struct _ConfigItems {
 	size_t configItemsCount;
 } ConfigItems; 
 
-uint8_t LoadConfigFile(HINSTANCE); 
-void CleanupConfigReader(); 
-ConfigItems* GetConfigItems(); 
+uint8_t loadConfigFile(HINSTANCE); 
+void cleanupConfigReader(); 
+ConfigItems* getConfigItems(); 

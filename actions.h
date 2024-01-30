@@ -12,15 +12,6 @@
 	ACTION(WINDOW_UP)    \
 	ACTION(WINDOW_DOWN)
 
-#define ADD_KEYBOARD_KEYBIND(i, action) \
-if(strcmp(configItems->configItem[i].name, ACTION_STRINGS[action]) == 0) \
-{ \
-    AddKeyboardKeybind( \
-        action, \
-        GetModifier(configItems->configItem[i].value), \
-        GetKeyCode(configItems->configItem[i].value) \
-    ); \
-}
 
 #define GENERATE_ENUM(ENUM) ENUM, 
 #define GENERATE_STRINGS(STRING) #STRING, 

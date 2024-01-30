@@ -7,11 +7,11 @@
 
 #include "debug.h" 
 
-UINT GetModifier(char* value); 
-UINT GetKeyCode(char* value); 
-void AddKeyboardKeybind(enum Action action, UINT modifier, UINT keyCode); 
+UINT getModifier(char* value); 
+UINT getKeyCode(char* value); 
+void addKeyboardKeybind(enum Action action, UINT modifier, UINT keyCode); 
 
-BOOL InitializeKeyboardConfig(ConfigItems* configItems) 
+BOOL initializeKeyboardConfig(ConfigItems* configItems) 
 { 
 	assert(configItems != NULL); 
 	assert(configItems->configItem != NULL); 
@@ -32,7 +32,7 @@ BOOL InitializeKeyboardConfig(ConfigItems* configItems)
 	return TRUE; 
 }
 
-void CleanupKeyboard() 
+void cleanupKeyboard() 
 {
 	UnregisterHotKey(NULL, WORKSPACE_1); 
 	UnregisterHotKey(NULL, WORKSPACE_2); 
@@ -44,7 +44,7 @@ void CleanupKeyboard()
 	UnregisterHotKey(NULL, WINDOW_RIGHT); 
 }
 
-UINT GetModifier(char* value) 
+UINT getModifier(char* value) 
 { 	
 	// TODO handle the different modifier values
 	// MOD_ALT
@@ -54,13 +54,13 @@ UINT GetModifier(char* value)
 	return MOD_ALT; 
 }
 
-UINT GetKeyCode(char* value) 
+UINT getKeyCode(char* value) 
 { 
 	DEBUG_PRINT("GetKeyCode char value '%c'", value[strlen(value) - 1]);
 	return VkKeyScanEx(value[strlen(value) - 1], GetKeyboardLayout(0));
 }
 
-void AddKeyboardKeybind(enum Action action, UINT modifier, UINT keyCode)
+void addKeyboardKeybind(enum Action action, UINT modifier, UINT keyCode)
 {
 	if(!RegisterHotKey(NULL, action, modifier | MOD_NOREPEAT, keyCode)) 
 	{ 
