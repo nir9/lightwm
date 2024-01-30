@@ -108,9 +108,6 @@ int main() {
 			if(ret != ERROR_SUCCESS) { 
 				DEBUG_PRINT("HotKey was unhandled! Ret: %i", ret); 
 			}
-			
-			TranslateMessage(&msg); 
-			DispatchMessageW(&msg); 
 			continue;
 		} else if (WaitForSingleObject(windowEvent, INFINITE) == WAIT_FAILED) {
 			reportWin32Error(L"WaitForSingleObject");
@@ -120,9 +117,6 @@ int main() {
 		Sleep(100);
 
 		tileWindows();
-	
-		TranslateMessage(&msg); 
-		DispatchMessageW(&msg); 
 	}
 
 cleanup:

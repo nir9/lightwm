@@ -55,7 +55,8 @@ __declspec(dllexport) LRESULT HotkeyProc(int code, WPARAM wparam, LPARAM lparam)
 			break; 
 	}
 	
-	return CallNextHookEx(NULL, code, wparam, lparam);
+	return ERROR_SUCCESS;
+	// return CallNextHookEx(NULL, code, wparam, lparam);
 }
 
 BOOL APIENTRY DllMain(HINSTANCE hModule, DWORD ulReasonForCall, LPVOID lpReserved) 
