@@ -1,14 +1,14 @@
 CC     = cl
 LD     = link
 RC     = rc
-CFLAGS = 
+CFLAGS =
 
 EXE_SRCS = wm.c tiling.c error.c config.c keyboard.c
 DLL_SRCS = wm_dll.c error.c
 EXE_NAME = lightwm.exe
 DLL_NAME = lightwm_dll.dll
 EXE_RC = wm_resources.obj
-DLL_RC = 
+DLL_RC =
 
 DBGDIR = debug
 DBGEXE = $(DBGDIR)/$(EXE_NAME)
@@ -23,7 +23,7 @@ REL_EXE_OBJS = $(addprefix $(RELDIR)/, $(EXE_SRCS:.c=.obj))
 REL_DLL_OBJS = $(addprefix $(RELDIR)/, $(DLL_SRCS:.c=.obj))
 RELDLL = $(RELDIR)/$(DLL_NAME)
 RELCFLAGS = $(CFLAGS) /Ox
- 
+
 
 .PHONY: all clean debug prep release
 
