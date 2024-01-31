@@ -1,4 +1,4 @@
 LIBRARY lightwm_dll
 EXPORTS
+SetMessageThreadId
 ShellProc
-HotkeyProc

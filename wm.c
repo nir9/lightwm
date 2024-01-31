@@ -3,23 +3,25 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h> 
+
 #include "error.h"
 #include "tiling.h"
 #include "keyboard.h" 
 #include "config.h"
-
-#include "resource.h" 
+#include "messages.h" 
 
 #include "debug.h" 
 
 HMODULE wmDll;
 HHOOK hookShellProcHandle;
-HANDLE windowEvent;
 
-//Has to absolutely match the definition in the dll 
-typedef LRESULT (*HotKeyProcType)(int, WPARAM, LPARAM);
+typedef BOOL (*SetMessageThreadIdType)(DWORD);
 
 void cleanupObjects() {
+	cleanupKeyboard();
+	
+	cleanupConfigReader();
+
 	if (hookShellProcHandle) {
 		UnhookWindowsHookEx(hookShellProcHandle);
 	}
@@ -27,13 +29,6 @@ void cleanupObjects() {
 	if (wmDll) {
 		FreeLibrary(wmDll);
 	}
-
-	if (windowEvent) {
-		CloseHandle(windowEvent);
-	}
-	
-	cleanupConfigReader();
-	cleanupKeyboard(); 
 }
 
 void ctrlc(int sig) {
@@ -56,30 +51,25 @@ int main() {
 	FARPROC shellProc = GetProcAddress(wmDll, "ShellProc");
 
 	if (shellProc == NULL) { 
-		reportWin32Error(L"GetProcAddress failed for shell even callback");
+		reportWin32Error(L"GetProcAddress for ShellProc");
 		goto cleanup; 
 	}
 	
-	HotKeyProcType HotKeyProc = (HotKeyProcType)GetProcAddress(wmDll, "HotkeyProc");
-
-	if (HotKeyProc == NULL) { 
-		reportWin32Error(L"GetProcAddress failed for shell even callback");
-		goto cleanup; 
-	}
-	
-	windowEvent = CreateEventW(NULL, FALSE, FALSE, L"LightWMWindowEvent");
-
-	if (windowEvent == NULL) {
-		reportWin32Error(L"CreateEvent");
-		goto cleanup;
-	}
-
 	hookShellProcHandle = SetWindowsHookExW(WH_SHELL, (HOOKPROC)shellProc, wmDll, 0);
 
 	if (hookShellProcHandle == NULL) {
-		reportWin32Error(L"SetWindowsHookExW failed for shell hook");
+		reportWin32Error(L"SetWindowsHookExW for shell hook");
 		goto cleanup;
 	}
+	
+	SetMessageThreadIdType setMessageThreadId = (SetMessageThreadIdType)GetProcAddress(wmDll, "SetMessageThreadId");
+
+	if (setMessageThreadId == NULL) { 
+		reportWin32Error(L"GetProcAddress for setMessageThreadId");
+		goto cleanup; 
+	}
+	 
+	setMessageThreadId(GetCurrentThreadId());
 	
 	signal(SIGINT, ctrlc);
  
@@ -95,28 +85,24 @@ int main() {
 		reportWin32Error(L"Setup keyboard config"); 
 		goto cleanup; 
 	}
- 
+	
 	// Handle a message loop
-	tileWindows();
+	//tileWindows();
 	MSG msg; 
-	while (GetMessage(&msg, NULL, 0, 0) != 0) {
-		if(msg.message == WM_HOTKEY) { 
-			//Because Win32 doesn't support hook callbacks with RegisterHotkey lets make our own callback. 
-			assert(HotKeyProc != NULL); 
-			
-			LRESULT ret = HotKeyProc(0, msg.wParam, msg.lParam);
-			if(ret != ERROR_SUCCESS) { 
-				DEBUG_PRINT("HotKey was unhandled! Ret: %i", ret); 
-			}
-			continue;
-		} else if (WaitForSingleObject(windowEvent, INFINITE) == WAIT_FAILED) {
-			reportWin32Error(L"WaitForSingleObject");
-			goto cleanup;
+	while (GetMessage(&msg, -1, 0, 0) != 0) {
+		switch(msg.message)
+		{
+			case WM_HOTKEY: 
+				LRESULT ret = handleHotkey(msg.wParam, msg.lParam);
+				if(ret != ERROR_SUCCESS) { 
+					DEBUG_PRINT("HotKey was unhandled! Ret: %lli", ret); 
+				}
+				break; 
+			case LWM_WINDOW_EVENT:
+				//tileWindows();
+				DEBUG_PRINT("LWM_WINDOW_EVENT Message handled");
+				break; 
 		}
-
-		Sleep(100);
-
-		tileWindows();
 	}
 
 cleanup:

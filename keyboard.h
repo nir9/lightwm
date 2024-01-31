@@ -18,3 +18,4 @@ if(strcmp(configItems->configItem[i].name, ACTION_STRINGS[action]) == 0) \
 
 BOOL initializeKeyboardConfig(ConfigItems* configItems); 
 void cleanupKeyboard(); 
+LRESULT handleHotkey(WPARAM lparam, LPARAM wparam); 

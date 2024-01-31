@@ -15,11 +15,11 @@
 
 #define BUFF_SIZE 65536
 
-PWSTR szConfigFilePath[MAX_PATH]; 
+PWSTR szConfigFilePath; 
+
 char* defaultConfigData = NULL; 
 
-//Should probably create a meta structure that holds the total count for now just another global variable
-ConfigItems configItems; 
+ConfigItems* configItems; 
 
 BOOL createDefaultConfigFile(HINSTANCE);
 BOOL loadDefaultConfigResourceData(HINSTANCE);
@@ -27,11 +27,15 @@ BOOL writeDefaultConfigDataToFile();
 void trim(char* str); 
 void removeControlChars(char* str); 
 size_t getLineCount(FILE* file);
- 
+
+void freeConfigItems(ConfigItems* items);
+
 DWORD readConfigFile() 
 { 
+	assert(szConfigFilePath != NULL);
+
 	//Try to open the config file based on the path
-	FILE* configFileHandle = _wfopen(*szConfigFilePath, L"r"); 
+	FILE* configFileHandle = _wfopen(szConfigFilePath, L"r"); 
 	
 	if(configFileHandle == NULL) 
 	{
@@ -41,11 +45,13 @@ DWORD readConfigFile()
 	}
 	
 	char line[BUFF_SIZE]; //TODO must have a more clever way of getting a line length
-		
-	configItems.configItem = (ConfigItem*)malloc(sizeof(ConfigItem) * getLineCount(configFileHandle) + 1); 
-	configItems.configItemsCount = getLineCount(configFileHandle) + 1; 
+	
+	configItems = (ConfigItems*)malloc(sizeof(ConfigItems)); 
+	
+	configItems->configItem = (ConfigItem*)malloc(sizeof(ConfigItem) * getLineCount(configFileHandle) + 1); 
+	configItems->configItemsCount = getLineCount(configFileHandle) + 1; 
 
-	if(configItems.configItem == NULL) 
+	if(configItems->configItem == NULL) 
 	{ 
 		reportWin32Error(L"Allocation ConfigItem memory"); 
 		cleanupConfigReader(); 
@@ -61,20 +67,20 @@ DWORD readConfigFile()
 		
 		//Get the first half of the line
 		char* token = strtok(line, " "); 
-		configItems.configItem[lineCount].name = (char*)malloc(strlen(token) + 1);
-		strncpy(configItems.configItem[lineCount].name, token, strlen(token) + 1); 
+		configItems->configItem[lineCount].name = (char*)malloc(strlen(token) + 1);
+		strncpy(configItems->configItem[lineCount].name, token, strlen(token) + 1); 
 		
 		//Get the second half of the line
 		token = strtok(NULL, " "); 
 		removeControlChars(token);
-		configItems.configItem[lineCount].value = (char*)malloc(strlen(token) + 1); 
-		strncpy(configItems.configItem[lineCount].value, token, strlen(token) + 1);
+		configItems->configItem[lineCount].value = (char*)malloc(strlen(token) + 1); 
+		strncpy(configItems->configItem[lineCount].value, token, strlen(token) + 1);
 		
-		DEBUG_PRINT("Name: %s Value: %s Name LEN: %lu Value LEN: %lu Count: %lu", 
-			configItems.configItem[lineCount].name, 
-			configItems.configItem[lineCount].value,
-			strlen(configItems.configItem[lineCount].name), 
-			strlen(configItems.configItem[lineCount].value), 
+		DEBUG_PRINT("Name: %s Value: %s Name LEN: %zu Value LEN: %zu Count: %zu", 
+			configItems->configItem[lineCount].name, 
+			configItems->configItem[lineCount].value,
+			strlen(configItems->configItem[lineCount].name), 
+			strlen(configItems->configItem[lineCount].value), 
 			lineCount); 
 	}
 	
@@ -85,17 +91,19 @@ DWORD readConfigFile()
 }
 
 void getConfigFilePath() 
-{ 
+{ 	
 	//TODO: We don't check other results possible results, i.e E_FAIL
-	HRESULT getAppDataPathResult = SHGetKnownFolderPath(&FOLDERID_RoamingAppData, 0, NULL, szConfigFilePath); 
-	
+	HRESULT getAppDataPathResult = SHGetKnownFolderPath(&FOLDERID_RoamingAppData, 0, NULL, &szConfigFilePath); 
+		
 	if(!SUCCEEDED(getAppDataPathResult)) { 
 		reportWin32Error(L"Could not get the users appdata directory"); 
-		CoTaskMemFree(szConfigFilePath); 
+		cleanupConfigReader();
 		exit(ERROR_PATH_NOT_FOUND);
 	}
 	
-	HRESULT concatStringResult = StringCchCatW(*szConfigFilePath, MAX_PATH, L"\\lightwm.config");
+	assert(szConfigFilePath != NULL);
+	
+	HRESULT concatStringResult = StringCchCatW(szConfigFilePath, MAX_PATH, L"\\lightwm.config");
 	
 	if(!SUCCEEDED(concatStringResult)) { 
 		switch(concatStringResult){ 
@@ -107,16 +115,18 @@ void getConfigFilePath()
 				break; 
 		}
 		reportWin32Error(L"Could not append file name to appdata path"); 
-		CoTaskMemFree(szConfigFilePath); 
+		cleanupConfigReader();
 		exit(GetLastError()); 
-	}
+	}	
 }
 
 uint8_t loadConfigFile(HINSTANCE resourceModuleHandle) 
 { 
+	szConfigFilePath = (PWSTR)malloc(sizeof(WCHAR) * MAX_PATH); 
 	getConfigFilePath();
-
-	if(!PathFileExistsW(*szConfigFilePath))
+	assert(szConfigFilePath != NULL);
+	
+	if(!PathFileExistsW(szConfigFilePath))
 	{
 		if(!createDefaultConfigFile(resourceModuleHandle)) 
 		{ 
@@ -130,34 +140,35 @@ uint8_t loadConfigFile(HINSTANCE resourceModuleHandle)
 	return ERROR_SUCCESS; 
 }
 
-void cleanupConfigReader() 
-{ 
-	CoTaskMemFree(szConfigFilePath); 
-	
-	if(configItems.configItem) //TODO Cleanup the name and value pointers for the strings
-	{
-		for(size_t i = 0; i < configItems.configItemsCount; i++) 
-		{
-			if(&configItems.configItem[i] != NULL) 
-			{ 
-				if(configItems.configItem[i].name) 
-				{ 
-					free(configItems.configItem[i].name); 
-				}
-				
-				if(configItems.configItem[i].value)
-				{
-					free(configItems.configItem[i].value); 
-				}
+void freeConfigItems(ConfigItems* items) {
+	if(items != NULL) {
+		for (size_t i = 0; i < items->configItemsCount; i++) {
+			if(&items->configItem[i] != NULL)
+			{
+				free(items->configItem[i].name);
+				free(items->configItem[i].value);
 			}
 		}
-		free(configItems.configItem); 
+		if(items->configItem != NULL)
+		{
+			free(items->configItem);
+		}
+		free(items);
 	}
+}
+
+void cleanupConfigReader() 
+{ 	
+	freeConfigItems(configItems); 
+	DEBUG_PRINT("Cleaned up config items"); 
+	
+	CoTaskMemFree(szConfigFilePath); 
+	DEBUG_PRINT("Cleaned up filePath ptr"); 
 }
 
 ConfigItems* getConfigItems()
 {
-	return &configItems;
+	return configItems;
 }
 
 /**
@@ -186,7 +197,7 @@ BOOL loadDefaultConfigResourceData(HINSTANCE resourceModuleHandle)
 	if(hRes == NULL) 
 	{
 		puts("Could not get HRSRC Handle"); 
-		printf("%s %i\n", "FindResource Error: ", GetLastError());
+		DEBUG_PRINT("FindResource Error: %i", GetLastError()); 
 		return FALSE; 
 	}
 	
@@ -195,7 +206,7 @@ BOOL loadDefaultConfigResourceData(HINSTANCE resourceModuleHandle)
 	if(hData == NULL) 
 	{
 		puts("Could not load resource"); 
-		printf("%s %i\n", "LoadResource Error: ", GetLastError());
+		DEBUG_PRINT("LoadResource Error: %i", GetLastError());
 		return FALSE; 
 	}
 	
@@ -204,7 +215,7 @@ BOOL loadDefaultConfigResourceData(HINSTANCE resourceModuleHandle)
 	if(defaultConfigResourceData == NULL) 
 	{
 		puts("Could not read resource"); 
-		printf("%s %i\n", "LockResource Error: ", GetLastError());
+		DEBUG_PRINT("LockResource Error: ", GetLastError());
 		return FALSE; 
 	}
 	
@@ -217,7 +228,7 @@ BOOL loadDefaultConfigResourceData(HINSTANCE resourceModuleHandle)
 
 BOOL writeDefaultConfigDataToFile() 
 { 
-	FILE* configFileHandle = _wfopen(*szConfigFilePath, L"w"); 
+	FILE* configFileHandle = _wfopen(szConfigFilePath, L"w"); 
 	
 	if(configFileHandle == NULL) 
 	{ 

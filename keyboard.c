@@ -42,6 +42,7 @@ void cleanupKeyboard()
 	UnregisterHotKey(NULL, WINDOW_DOWN); 
 	UnregisterHotKey(NULL, WINDOW_LEFT); 
 	UnregisterHotKey(NULL, WINDOW_RIGHT); 
+	DEBUG_PRINT("Unregistered all hotkeys"); 
 }
 
 UINT getModifier(char* value) 
@@ -74,4 +75,45 @@ void addKeyboardKeybind(enum Action action, UINT modifier, UINT keyCode)
 	}
 	
 	DEBUG_PRINT("Registered %s hotkey", ACTION_STRINGS[action]);  
+}
+
+LRESULT handleHotkey(WPARAM wparam, LPARAM lparam) 
+{ 
+	DEBUG_PRINT("handleHotkey called - %lli %lli", wparam, lparam); 
+	
+	switch(wparam) 
+	{ 
+		//TODO Can either trigger an event like the ShellProc callback, or handle directly. 
+		// one method to handle virtual desktops is using the IVirtualDesktopManager in ShObjIdl but 
+		// that is only available for Window 10 1809 or later. 
+		case WORKSPACE_1:
+			puts("Switch to workspace 1");
+			break;
+		case WORKSPACE_2:
+			puts("Switch to workspace 2"); 
+			break;
+		case WORKSPACE_3:
+			puts("Switch to workspace 3"); 
+			break;
+		case WORKSPACE_4:
+			puts("Switch to workspace 4"); 
+			break;
+		case WINDOW_UP: 
+			puts("Highlight window above"); 
+			break; 
+		case WINDOW_DOWN: 
+			puts("Highlight window below"); 
+			break; 
+		case WINDOW_LEFT: 
+			puts("Highlight window left"); 
+			break; 
+		case WINDOW_RIGHT: 
+			puts("Highlight window right"); 
+			break; 
+		default: 
+			DEBUG_PRINT("Unhandled hotkey message! Hotkey ID: %lli", wparam); 
+			break; 
+	}
+	
+	return ERROR_SUCCESS;
 }

@@ -1,10 +1,10 @@
 CC     = cl
 LD     = link
 RC     = rc
-CFLAGS = /EHsc
+CFLAGS = 
 
 EXE_SRCS = wm.c tiling.c error.c config.c keyboard.c
-DLL_SRCS = error.c wm_dll.c
+DLL_SRCS = wm_dll.c error.c
 EXE_NAME = lightwm.exe
 DLL_NAME = lightwm_dll.dll
 EXE_RC = wm_resources.obj
@@ -52,7 +52,7 @@ $(DBGDIR)/%.obj: %.rc
 #
 release: prep $(RELEXE) $(RELDLL)
 
-$(RELEXE): $(REL_EXE_OBJS) $(RELDIR)/$(EXE_RESS)
+$(RELEXE): $(REL_EXE_OBJS) $(RELDIR)/$(EXE_RC)
 	$(CC) $(RELCFLAGS) /Fe:$@ $^ /link user32.lib shell32.lib ole32.lib shlwapi.lib
 
 $(RELDLL): $(REL_DLL_OBJS)
