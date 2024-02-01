@@ -32,6 +32,8 @@ void ctrlc(int sig) {
 }
 
 int main() {
+    SetProcessDPIAware();
+
 	wmDll = LoadLibraryW(L"lightwm_dll");
 	
 	if (wmDll == NULL) {
