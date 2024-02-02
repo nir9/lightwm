@@ -2,20 +2,17 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h> 
 
 #include "error.h"
-#include "tiling.h"
 #include "keyboard.h" 
 #include "config.h"
 #include "messages.h" 
 
-#include "debug.h" 
+#include "debug.h"
+#include "tiling.h"
 
 HMODULE wmDll;
 HHOOK hookShellProcHandle;
-
-typedef BOOL (*SetMessageThreadIdType)(DWORD);
 
 void cleanupObjects() {
 	cleanupKeyboard();
@@ -39,8 +36,53 @@ void ctrlc(int sig) {
 	exit(ERROR_SUCCESS);
 }
 
+LPVOID createAddressSharedMemory() {
+	// Create a shared memory region
+	HANDLE hMapFile = CreateFileMapping(
+		INVALID_HANDLE_VALUE,
+		NULL,
+		PAGE_READWRITE,
+		0,
+		sizeof(DWORD),
+		"lightwmthreadid"
+	);
+
+	if (hMapFile == NULL) {
+		DEBUG_PRINT("Could not create file mapping object (%lu).", GetLastError());
+		return NULL;
+	}
+
+	LPVOID lpMapAddress = MapViewOfFile(
+		hMapFile,   // handle to map object
+		FILE_MAP_ALL_ACCESS, // read/write permission
+		0,
+		0,
+		sizeof(DWORD)
+	);
+
+	if (lpMapAddress == NULL) {
+		DEBUG_PRINT("Could not map view of file (%lu).", GetLastError());
+		CloseHandle(hMapFile);
+		return NULL;
+	}
+
+	return lpMapAddress;
+}
+
 int main() {
     SetProcessDPIAware();
+
+	//Create shared memory
+	LPVOID sharedMemoryAddress = createAddressSharedMemory();
+
+	if(sharedMemoryAddress == NULL) {
+		reportWin32Error(L"Create Shared Memory");
+		goto cleanup;
+	}
+
+	DWORD dwThreadId = GetCurrentThreadId();
+	DEBUG_PRINT("Lightwm.exe thread id: %lu", dwThreadId);
+	CopyMemory((PVOID)sharedMemoryAddress, &dwThreadId, sizeof(DWORD));
 
 	wmDll = LoadLibraryW(L"lightwm_dll");
 	
@@ -62,18 +104,9 @@ int main() {
 		reportWin32Error(L"SetWindowsHookExW for shell hook");
 		goto cleanup;
 	}
-	
-	SetMessageThreadIdType setMessageThreadId = (SetMessageThreadIdType)GetProcAddress(wmDll, "SetMessageThreadId");
 
-	if (setMessageThreadId == NULL) { 
-		reportWin32Error(L"GetProcAddress for setMessageThreadId");
-		goto cleanup; 
-	}
-	 
-	setMessageThreadId(GetCurrentThreadId());
-	
 	signal(SIGINT, ctrlc);
- 
+
 	//Load the configuration
 	if(loadConfigFile(NULL) != ERROR_SUCCESS) 
 	{ 
@@ -86,21 +119,21 @@ int main() {
 		reportWin32Error(L"Setup keyboard config"); 
 		goto cleanup; 
 	}
-	
+
 	// Handle a message loop
-	//tileWindows();
-	MSG msg; 
-	while (GetMessage(&msg, -1, 0, 0) != 0) {
+	tileWindows();
+	MSG msg;
+	while (GetMessage(&msg, (HWND)-1, 0, 0) != 0) {
 		switch(msg.message)
 		{
-			case WM_HOTKEY: 
-				LRESULT ret = handleHotkey(msg.wParam, msg.lParam);
+			case WM_HOTKEY:
+				const LRESULT ret = handleHotkey(msg.wParam, msg.lParam);
 				if(ret != ERROR_SUCCESS) { 
 					DEBUG_PRINT("HotKey was unhandled! Ret: %lli", ret); 
 				}
 				break; 
 			case LWM_WINDOW_EVENT:
-				//tileWindows();
+				tileWindows();
 				DEBUG_PRINT("LWM_WINDOW_EVENT Message handled");
 				break; 
 		}

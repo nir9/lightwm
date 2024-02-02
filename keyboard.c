@@ -8,17 +8,16 @@
 #include "debug.h" 
 
 UINT getModifier(char* value); 
-UINT getKeyCode(char* value); 
+UINT getKeyCode(const char* value);
 void addKeyboardKeybind(enum Action action, UINT modifier, UINT keyCode); 
 
-BOOL initializeKeyboardConfig(ConfigItems* configItems) 
+BOOL initializeKeyboardConfig(const ConfigItems* configItems)
 { 
 	assert(configItems != NULL); 
 	assert(configItems->configItem != NULL); 
 	assert(configItems->configItemsCount != 0);
 	
-	for(size_t i = 0; i < configItems->configItemsCount; i++) { 
-		//TODO Modify the macro to use generate all these automatically.
+	for(size_t i = 0; i < configItems->configItemsCount; i++) {
 		ADD_KEYBOARD_KEYBIND(i, WORKSPACE_1);
 		ADD_KEYBOARD_KEYBIND(i, WORKSPACE_2);
 		ADD_KEYBOARD_KEYBIND(i, WORKSPACE_3);
@@ -55,7 +54,7 @@ UINT getModifier(char* value)
 	return MOD_ALT; 
 }
 
-UINT getKeyCode(char* value) 
+UINT getKeyCode(const char* value)
 { 
 	DEBUG_PRINT("GetKeyCode char value '%c'", value[strlen(value) - 1]);
 	return VkKeyScanEx(value[strlen(value) - 1], GetKeyboardLayout(0));
@@ -82,9 +81,8 @@ LRESULT handleHotkey(WPARAM wparam, LPARAM lparam)
 	DEBUG_PRINT("handleHotkey called - %lli %lli", wparam, lparam); 
 	
 	switch(wparam) 
-	{ 
-		//TODO Can either trigger an event like the ShellProc callback, or handle directly. 
-		// one method to handle virtual desktops is using the IVirtualDesktopManager in ShObjIdl but 
+	{
+		// One method to handle virtual desktops is using the IVirtualDesktopManager in ShObjIdl but
 		// that is only available for Window 10 1809 or later. 
 		case WORKSPACE_1:
 			puts("Switch to workspace 1");

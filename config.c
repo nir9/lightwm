@@ -44,7 +44,7 @@ DWORD readConfigFile()
 		return ERROR_INVALID_HANDLE; 
 	}
 	
-	char line[BUFF_SIZE]; //TODO must have a more clever way of getting a line length
+	char line[BUFF_SIZE];
 	
 	configItems = (ConfigItems*)malloc(sizeof(ConfigItems)); 
 	
@@ -95,7 +95,17 @@ void getConfigFilePath()
 	//TODO: We don't check other results possible results, i.e E_FAIL
 	HRESULT getAppDataPathResult = SHGetKnownFolderPath(&FOLDERID_RoamingAppData, 0, NULL, &szConfigFilePath); 
 		
-	if(!SUCCEEDED(getAppDataPathResult)) { 
+	if(!SUCCEEDED(getAppDataPathResult)) {
+		switch(getAppDataPathResult) {
+			case E_FAIL:
+				SetLastError(ERROR_DIRECTORY_NOT_SUPPORTED);
+				break;
+			case E_INVALIDARG:
+				SetLastError(ERROR_TIERING_INVALID_FILE_ID);
+				break;
+			default:
+				SetLastError(ERROR_GEN_FAILURE);
+		}
 		reportWin32Error(L"Could not get the users appdata directory"); 
 		cleanupConfigReader();
 		exit(ERROR_PATH_NOT_FOUND);
@@ -112,7 +122,9 @@ void getConfigFilePath()
 				break; 
 			case STRSAFE_E_INSUFFICIENT_BUFFER: 
 				SetLastError(ERROR_INSUFFICIENT_BUFFER);
-				break; 
+				break;
+			default:
+				SetLastError(ERROR_GEN_FAILURE);
 		}
 		reportWin32Error(L"Could not append file name to appdata path"); 
 		cleanupConfigReader();
@@ -197,7 +209,7 @@ BOOL loadDefaultConfigResourceData(HINSTANCE resourceModuleHandle)
 	if(hRes == NULL) 
 	{
 		puts("Could not get HRSRC Handle"); 
-		DEBUG_PRINT("FindResource Error: %i", GetLastError()); 
+		DEBUG_PRINT("FindResource Error: %lu", GetLastError());
 		return FALSE; 
 	}
 	
@@ -206,7 +218,7 @@ BOOL loadDefaultConfigResourceData(HINSTANCE resourceModuleHandle)
 	if(hData == NULL) 
 	{
 		puts("Could not load resource"); 
-		DEBUG_PRINT("LoadResource Error: %i", GetLastError());
+		DEBUG_PRINT("LoadResource Error: %lu", GetLastError());
 		return FALSE; 
 	}
 	
@@ -215,7 +227,7 @@ BOOL loadDefaultConfigResourceData(HINSTANCE resourceModuleHandle)
 	if(defaultConfigResourceData == NULL) 
 	{
 		puts("Could not read resource"); 
-		DEBUG_PRINT("LockResource Error: ", GetLastError());
+		DEBUG_PRINT("LockResource Error: %lu", GetLastError());
 		return FALSE; 
 	}
 	
