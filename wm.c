@@ -40,7 +40,8 @@ void ctrlc(int sig) {
 }
 
 int main() {
-	// Load Libraries and the needed functions from those libraries
+    SetProcessDPIAware();
+
 	wmDll = LoadLibraryW(L"lightwm_dll");
 	
 	if (wmDll == NULL) {
