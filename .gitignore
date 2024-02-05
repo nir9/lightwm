@@ -12,3 +12,4 @@ tags
 .vs/
 debug/
 release/ 
+*.res

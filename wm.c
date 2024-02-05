@@ -3,18 +3,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "tiling.h"
 #include "error.h"
-#include "keyboard.h" 
+#include "keyboard.h"
 #include "config.h"
 #include "messages.h" 
 
 #include "debug.h"
-#include "tiling.h"
+
 
 HMODULE wmDll;
 HHOOK hookShellProcHandle;
 
 void cleanupObjects() {
+
 	cleanupKeyboard();
 	
 	cleanupConfigReader();
@@ -107,8 +109,7 @@ int main() {
 
 	signal(SIGINT, ctrlc);
 
-	//Load the configuration
-	if(loadConfigFile(NULL) != ERROR_SUCCESS) 
+	if(!loadConfigFile(NULL))
 	{ 
 		reportWin32Error(L"Load config file");
 		goto cleanup; 
@@ -135,7 +136,9 @@ int main() {
 			case LWM_WINDOW_EVENT:
 				tileWindows();
 				DEBUG_PRINT("LWM_WINDOW_EVENT Message handled");
-				break; 
+				break;
+			default:
+				break;
 		}
 	}
 

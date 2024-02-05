@@ -1,72 +1,43 @@
-CC     = cl
-LD     = link
-RC     = rc
-CFLAGS =
+# Define compiler and linker
+CC = cl
+LINKER = link
+RC = rc
 
-EXE_SRCS = wm.c tiling.c error.c config.c keyboard.c
-DLL_SRCS = wm_dll.c error.c
-EXE_NAME = lightwm.exe
-DLL_NAME = lightwm_dll.dll
-EXE_RC = wm_resources.obj
-DLL_RC =
+# Define common compiler flags
+CFLAGS = /W3 /EHsc
 
-DBGDIR = debug
-DBGEXE = $(DBGDIR)/$(EXE_NAME)
-DBG_EXE_OBJS = $(addprefix $(DBGDIR)/, $(EXE_SRCS:.c=.obj))
-DBG_DLL_OBJS = $(addprefix $(DBGDIR)/, $(DLL_SRCS:.c=.obj))
-DBGDLL = $(DBGDIR)/$(DLL_NAME)
-DBGCFLAGS = $(CFLAGS) /DDEBUG /Zi
+# Define debug specific compiler flags
+DBGCFLAGS = $(CFLAGS) /DDEBUG /Zi /Wall
 
-RELDIR = release
-RELEXE = $(RELDIR)/$(EXE_NAME)
-REL_EXE_OBJS = $(addprefix $(RELDIR)/, $(EXE_SRCS:.c=.obj))
-REL_DLL_OBJS = $(addprefix $(RELDIR)/, $(DLL_SRCS:.c=.obj))
-RELDLL = $(RELDIR)/$(DLL_NAME)
+# Define release specific compiler flags
 RELCFLAGS = $(CFLAGS) /Ox
 
+# Define source files
+EXE_SRCS = wm.c tiling.c error.c config.c keyboard.c
+DLL_SRCS = wm_dll.c error.c
+RES_FILE = wm_resources.rc
 
-.PHONY: all clean debug prep release
+# Define directories
+DBGDIR = debug
+RELDIR = release
 
-# Default build
-all: clean prep release
+# Define output names
+EXE_NAME = lightwm.exe
+DLL_NAME = lightwm_dll.dll
 
-#
-# Debug rules
-#
-debug: clean prep $(DBGEXE) $(DBGDLL)
+all: debug release
 
-$(DBGEXE): $(DBG_EXE_OBJS) $(DBGDIR)/$(EXE_RC)
-	$(CC) $(DBGCFLAGS) /Fe:$@ $^ /link user32.lib shell32.lib ole32.lib shlwapi.lib
+debug: clean prep resource wm.c
+	$(CC) $(DBGCFLAGS) $(EXE_SRCS) $(RES_FILE).res /link user32.lib shell32.lib ole32.lib shlwapi.lib /out:$(DBGDIR)/$(EXE_NAME)
+	$(CC) $(DBGCFLAGS) $(DLL_SRCS) /LD /link user32.lib /DEF:wm_dll.def /out:$(DBGDIR)/$(DLL_NAME)
 
-$(DBGDLL): $(DBG_DLL_OBJS)
-	$(CC) $(DBGCFLAGS) /Fe:$@ $^ /LD /link user32.lib /DEF:wm_dll.def
+release: clean prep resource wm.c
+	$(CC) $(RELCFLAGS) $(EXE_SRCS) $(RES_FILE).res /link user32.lib shell32.lib ole32.lib shlwapi.lib /out:$(RELDIR)/$(EXE_NAME)
+	$(CC) $(RELCFLAGS) $(DLL_SRCS) /LD /link user32.lib /DEF:wm_dll.def /out:$(RELDIR)/$(DLL_NAME)
 
-$(DBGDIR)/%.obj: %.c
-	$(CC) $(DBGCFLAGS) /c /Fo:$@ $<
+resource: $(RES_FILE)
+	$(RC) /fo $(RES_FILE).res $(RES_FILE)
 
-$(DBGDIR)/%.obj: %.rc
-	$(RC) /fo $@ $<
-
-#
-# Release rules
-#
-release: prep $(RELEXE) $(RELDLL)
-
-$(RELEXE): $(REL_EXE_OBJS) $(RELDIR)/$(EXE_RC)
-	$(CC) $(RELCFLAGS) /Fe:$@ $^ /link user32.lib shell32.lib ole32.lib shlwapi.lib
-
-$(RELDLL): $(REL_DLL_OBJS)
-	$(CC) $(RELCFLAGS) /Fe:$@ $^ /LD /link user32.lib /DEF:wm_dll.def
-
-$(RELDIR)/%.obj: %.c
-	$(CC) $(RELCFLAGS) /c /Fo:$@ $<
-
-$(RELDIR)/%.obj: %.rc
-	$(RC) /fo $@ $<
-
-#
-# Prep and clean rules
-#
 prep:
 	@echo off > temp.bat && \
 	echo IF NOT EXIST $(DBGDIR) mkdir $(DBGDIR) >> temp.bat && \
@@ -75,6 +46,8 @@ prep:
 	del temp.bat
 
 clean:
+	del *.obj *.exe *.dll *.lib *.exp *.ilk *.pdb *.res
+
 	@echo off > temp.bat && \
 	echo IF EXIST $(DBGDIR) del /S /Q $(DBGDIR) >> temp.bat && \
 	echo IF EXIST $(RELDIR) del /S /Q $(RELDIR) >> temp.bat && \
