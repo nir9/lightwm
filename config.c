@@ -122,6 +122,7 @@ void getConfigFilePath() {
             default:
                 SetLastError(ERROR_GEN_FAILURE);
         }
+
         reportWin32Error(L"Could not append file name to appdata path");
         cleanupConfigReader();
         exit(GetLastError());
@@ -169,9 +170,6 @@ ConfigItems *getConfigItems() {
     return configItems;
 }
 
-/**
- * Private definitions here
- **/
 BOOL createDefaultConfigFile(HINSTANCE resourceModuleHandle) {
     if (!loadDefaultConfigResourceData(resourceModuleHandle)) {
         return FALSE;
@@ -209,7 +207,8 @@ BOOL loadDefaultConfigResourceData(HINSTANCE resourceModuleHandle) {
         return FALSE;
     }
 
-    size_t defaultConfigResourceDataLen = strlen(defaultConfigResourceData) + 1; //+1 for the null char
+	int nullTerm = 1;
+    size_t defaultConfigResourceDataLen = strlen(defaultConfigResourceData) + nullTerm;
     defaultConfigData = (char *) malloc(sizeof(char) * defaultConfigResourceDataLen); //TODO Error checking
     strcpy(defaultConfigData, defaultConfigResourceData);
 

@@ -15,3 +15,9 @@ I haven't tried building with a different VS version or building x86, but that m
 
 - Add keyboard navigation
 - Add workspaces
+
+## Coding Conventions
+
+- Function and variable names: camelCase
+- Comments: Avoid adding obvious comments on the code and use them only if they have any added value
+- Pointers: ```int*``` and not ```int *```

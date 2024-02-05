@@ -70,6 +70,18 @@ LPVOID createAddressSharedMemory() {
 int main() {
     SetProcessDPIAware();
 
+	if(!loadConfigFile(NULL))
+	{ 
+		reportWin32Error(L"Load config file");
+		goto cleanup; 
+	}
+	
+	if(!initializeKeyboardConfig(getConfigItems())) 
+	{ 
+		reportWin32Error(L"Setup keyboard config"); 
+		goto cleanup; 
+	}
+
 	LPVOID sharedMemoryAddress = createAddressSharedMemory();
 
 	if(sharedMemoryAddress == NULL) {
@@ -103,18 +115,6 @@ int main() {
 	}
 
 	signal(SIGINT, ctrlc);
-
-	if(!loadConfigFile(NULL))
-	{ 
-		reportWin32Error(L"Load config file");
-		goto cleanup; 
-	}
-	
-	if(!initializeKeyboardConfig(getConfigItems())) 
-	{ 
-		reportWin32Error(L"Setup keyboard config"); 
-		goto cleanup; 
-	}
 
 	tileWindows();
 

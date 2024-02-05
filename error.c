@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include "error.h"
 
+void reportGeneralError(wchar_t* message) {
+	wprintf(L"[!] Error: %s\n", message);
+}
+
 void reportWin32Error(wchar_t* message) {
 	DWORD err = GetLastError(); 
 

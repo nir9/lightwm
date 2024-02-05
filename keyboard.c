@@ -13,9 +13,9 @@ UINT getKeyCode(const char *value);
 
 void addKeyboardKeybind(enum Action action, UINT modifier, UINT keyCode);
 
-void bindKeyIfRelevant(ConfigItem configItem, enum Action action) {
+BOOL bindKeyIfRelevant(ConfigItem configItem, enum Action action) {
 	if (configItem.name == NULL) {
-		return;
+		return FALSE;
 	}
 
 	if (strcmp(configItem.name, ACTION_STRINGS[action]) == 0) {
@@ -24,7 +24,11 @@ void bindKeyIfRelevant(ConfigItem configItem, enum Action action) {
 			getModifier(configItem.value),
 			getKeyCode(configItem.value)
 		);
+
+		return TRUE;
 	}
+
+	return FALSE;
 }
 
 BOOL initializeKeyboardConfig(const ConfigItems *configItems) {
@@ -32,15 +36,20 @@ BOOL initializeKeyboardConfig(const ConfigItems *configItems) {
     assert(configItems->configItem != NULL);
     assert(configItems->configItemsCount != 0);
 
-    for (size_t i = 1; i <= configItems->configItemsCount; i++) {
-        bindKeyIfRelevant(configItems->configItem[i], WORKSPACE_1);
-        bindKeyIfRelevant(configItems->configItem[i], WORKSPACE_2);
-        bindKeyIfRelevant(configItems->configItem[i], WORKSPACE_3);
-        bindKeyIfRelevant(configItems->configItem[i], WORKSPACE_4);
-        bindKeyIfRelevant(configItems->configItem[i], WINDOW_UP);
-        bindKeyIfRelevant(configItems->configItem[i], WINDOW_DOWN);
-        bindKeyIfRelevant(configItems->configItem[i], WINDOW_LEFT);
-        bindKeyIfRelevant(configItems->configItem[i], WINDOW_RIGHT);
+    for (size_t i = 1; i < configItems->configItemsCount; i++) {
+		BOOL foundKey = FALSE;
+
+		for (size_t j = 0; j < TOTAL_ACTIONS_COUNT; j++) {
+			if (bindKeyIfRelevant(configItems->configItem[i], (enum Action)j)) {
+				foundKey = TRUE;
+				break;
+			}
+		}
+
+		if (!foundKey) {
+			wprintf(L"\nError: The lightwm.config configuration in APPDATA contains the action %S which is not supported by LightWM.\nYou can either delete the configuration in APPDATA and next time LightWM starts, it will create a new default one over there.\nOr you can take a look at the default config and understand the difference with your current config\n\n", configItems->configItem[i].name);
+			return FALSE;
+		}
     }
 
     return TRUE;
@@ -51,10 +60,8 @@ void cleanupKeyboard() {
     UnregisterHotKey(NULL, WORKSPACE_2);
     UnregisterHotKey(NULL, WORKSPACE_3);
     UnregisterHotKey(NULL, WORKSPACE_4);
-    UnregisterHotKey(NULL, WINDOW_UP);
-    UnregisterHotKey(NULL, WINDOW_DOWN);
-    UnregisterHotKey(NULL, WINDOW_LEFT);
-    UnregisterHotKey(NULL, WINDOW_RIGHT);
+    UnregisterHotKey(NULL, NEXT_WINDOW);
+    UnregisterHotKey(NULL, PREV_WINDOW);
     DEBUG_PRINT("Unregistered all hotkeys");
 }
 
@@ -106,17 +113,11 @@ LRESULT handleHotkey(WPARAM wparam, LPARAM lparam) {
         case WORKSPACE_4:
             DEBUG_PRINT("Switch to workspace 4");
             break;
-        case WINDOW_UP:
-            DEBUG_PRINT("Highlight window above");
+        case NEXT_WINDOW:
+            DEBUG_PRINT("Highlight next window");
             break;
-        case WINDOW_DOWN:
-            DEBUG_PRINT("Highlight window below");
-            break;
-        case WINDOW_LEFT:
-            DEBUG_PRINT("Highlight window left");
-            break;
-        case WINDOW_RIGHT:
-            DEBUG_PRINT("Highlight window right");
+        case PREV_WINDOW:
+            DEBUG_PRINT("Highlight previous window");
             break;
         default:
             DEBUG_PRINT("Unhandled hotkey message! Hotkey ID: %lli", wparam);
