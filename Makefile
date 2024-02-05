@@ -25,7 +25,7 @@ RELDIR = release
 EXE_NAME = lightwm.exe
 DLL_NAME = lightwm_dll.dll
 
-all: debug release
+all: clean_old debug release
 
 debug: clean prep resource wm.c
 	$(CC) $(DBGCFLAGS) $(EXE_SRCS) $(RES_FILE).res /link user32.lib shell32.lib ole32.lib shlwapi.lib /out:$(DBGDIR)/$(EXE_NAME)
@@ -44,6 +44,12 @@ prep:
 	echo IF NOT EXIST $(RELDIR) mkdir $(RELDIR) >> temp.bat && \
 	temp.bat && \
 	del temp.bat
+
+# Temporary for a couple of weeks
+clean_old:
+	if exist wm.exe ( del wm.exe )
+	if exist wm_dll.dll ( del wm_dll.dll )
+	echo Old cleanup done
 
 clean:
 	del *.obj *.exe *.dll *.lib *.exp *.ilk *.pdb *.res

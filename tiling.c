@@ -6,12 +6,22 @@ HWND managed[256];
 int currentManagedIndex = 0;
 
 BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lparam) {
+	if (currentManagedIndex > 255) {
+		return FALSE;
+	}
+
 	if (!IsWindowVisible(hwnd) || IsHungAppWindow(hwnd)) {
 		return TRUE;
 	}
 
-	if (currentManagedIndex > 255) {
-		return FALSE;
+	WINDOWINFO winInfo;
+	winInfo.cbSize = sizeof(WINDOWINFO);
+	if (!GetWindowInfo(hwnd, &winInfo)) {
+		return TRUE;
+	}
+
+	if (winInfo.dwStyle & WS_POPUP) {
+		return TRUE;
 	}
 
 	if (GetWindowTextLengthW(hwnd) == 0) {
