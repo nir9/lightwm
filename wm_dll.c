@@ -1,9 +1,6 @@
 #include <Windows.h>
 #include <stdio.h>
-
-#include "targetver.h"
 #include "messages.h"
-
 #include "debug.h"
 
 DWORD lightwmMainThreadId = 0;

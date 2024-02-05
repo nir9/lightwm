@@ -4,10 +4,10 @@ LINKER = link
 RC = rc
 
 # Define common compiler flags
-CFLAGS = /W3 /EHsc
+CFLAGS = /W3
 
 # Define debug specific compiler flags
-DBGCFLAGS = $(CFLAGS) /DDEBUG /Zi /Wall
+DBGCFLAGS = $(CFLAGS) /DDEBUG /Zi /W3 # temporarly not Wall
 
 # Define release specific compiler flags
 RELCFLAGS = $(CFLAGS) /Ox

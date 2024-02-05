@@ -13,20 +13,34 @@ UINT getKeyCode(const char *value);
 
 void addKeyboardKeybind(enum Action action, UINT modifier, UINT keyCode);
 
+void bindKeyIfRelevant(ConfigItem configItem, enum Action action) {
+	if (configItem.name == NULL) {
+		return;
+	}
+
+	if (strcmp(configItem.name, ACTION_STRINGS[action]) == 0) {
+		addKeyboardKeybind(
+			action,
+			getModifier(configItem.value),
+			getKeyCode(configItem.value)
+		);
+	}
+}
+
 BOOL initializeKeyboardConfig(const ConfigItems *configItems) {
     assert(configItems != NULL);
     assert(configItems->configItem != NULL);
     assert(configItems->configItemsCount != 0);
 
     for (size_t i = 1; i <= configItems->configItemsCount; i++) {
-        ADD_KEYBOARD_KEYBIND(i, WORKSPACE_1);
-        ADD_KEYBOARD_KEYBIND(i, WORKSPACE_2);
-        ADD_KEYBOARD_KEYBIND(i, WORKSPACE_3);
-        ADD_KEYBOARD_KEYBIND(i, WORKSPACE_4);
-        ADD_KEYBOARD_KEYBIND(i, WINDOW_UP);
-        ADD_KEYBOARD_KEYBIND(i, WINDOW_DOWN);
-        ADD_KEYBOARD_KEYBIND(i, WINDOW_LEFT);
-        ADD_KEYBOARD_KEYBIND(i, WINDOW_RIGHT);
+        bindKeyIfRelevant(configItems->configItem[i], WORKSPACE_1);
+        bindKeyIfRelevant(configItems->configItem[i], WORKSPACE_2);
+        bindKeyIfRelevant(configItems->configItem[i], WORKSPACE_3);
+        bindKeyIfRelevant(configItems->configItem[i], WORKSPACE_4);
+        bindKeyIfRelevant(configItems->configItem[i], WINDOW_UP);
+        bindKeyIfRelevant(configItems->configItem[i], WINDOW_DOWN);
+        bindKeyIfRelevant(configItems->configItem[i], WINDOW_LEFT);
+        bindKeyIfRelevant(configItems->configItem[i], WINDOW_RIGHT);
     }
 
     return TRUE;

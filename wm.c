@@ -2,15 +2,12 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "tiling.h"
 #include "error.h"
 #include "keyboard.h"
 #include "config.h"
 #include "messages.h" 
-
 #include "debug.h"
-
 
 HMODULE wmDll;
 HHOOK hookShellProcHandle;
@@ -39,7 +36,6 @@ void ctrlc(int sig) {
 }
 
 LPVOID createAddressSharedMemory() {
-	// Create a shared memory region
 	HANDLE hMapFile = CreateFileMapping(
 		INVALID_HANDLE_VALUE,
 		NULL,
@@ -55,8 +51,8 @@ LPVOID createAddressSharedMemory() {
 	}
 
 	LPVOID lpMapAddress = MapViewOfFile(
-		hMapFile,   // handle to map object
-		FILE_MAP_ALL_ACCESS, // read/write permission
+		hMapFile,
+		FILE_MAP_ALL_ACCESS,
 		0,
 		0,
 		sizeof(DWORD)
@@ -74,7 +70,6 @@ LPVOID createAddressSharedMemory() {
 int main() {
     SetProcessDPIAware();
 
-	//Create shared memory
 	LPVOID sharedMemoryAddress = createAddressSharedMemory();
 
 	if(sharedMemoryAddress == NULL) {
@@ -89,7 +84,7 @@ int main() {
 	wmDll = LoadLibraryW(L"lightwm_dll");
 	
 	if (wmDll == NULL) {
-		reportWin32Error(L"LoadLibrary of wm_dll"); 
+		reportWin32Error(L"LoadLibrary of lightwm_dll"); 
 		return ERROR_MOD_NOT_FOUND;
 	}
 	
@@ -121,17 +116,20 @@ int main() {
 		goto cleanup; 
 	}
 
-	// Handle a message loop
 	tileWindows();
+
 	MSG msg;
+
 	while (GetMessage(&msg, (HWND)-1, 0, 0) != 0) {
-		switch(msg.message)
+		switch (msg.message)
 		{
 			case WM_HOTKEY:
 				const LRESULT ret = handleHotkey(msg.wParam, msg.lParam);
-				if(ret != ERROR_SUCCESS) { 
+
+				if (ret != ERROR_SUCCESS) { 
 					DEBUG_PRINT("HotKey was unhandled! Ret: %lli", ret); 
 				}
+
 				break; 
 			case LWM_WINDOW_EVENT:
 				tileWindows();
