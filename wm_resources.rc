@@ -1,0 +1,50 @@
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+#include "winres.h"
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+IDR_DEFAULT_CONFIG RCDATA "lightwm.config"
+
+STRINGTABLE
+BEGIN
+	IDS_LIGHTWM_CNF_NAME         "lightwm.config"
+END
+#endif    
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (Canada) resources (just copies English US) 
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENC)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_CAN
+
+#ifdef APSTUDIO_INVOKED
+
+1 TEXTINCLUDE
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE
+BEGIN
+    "#include ""winres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif  
+
+#endif   
+
+#ifndef APSTUDIO_INVOKED
+#endif    

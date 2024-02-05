@@ -2,24 +2,31 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "error.h"
-#include "tiling.h"
 
-HHOOK hookHandle;
+#include "tiling.h"
+#include "error.h"
+#include "keyboard.h"
+#include "config.h"
+#include "messages.h" 
+
+#include "debug.h"
+
+
 HMODULE wmDll;
-HANDLE windowEvent;
+HHOOK hookShellProcHandle;
 
 void cleanupObjects() {
-	if (hookHandle) {
-		UnhookWindowsHookEx(hookHandle);
-	}
 
+	cleanupKeyboard();
+	
+	cleanupConfigReader();
+
+	if (hookShellProcHandle) {
+		UnhookWindowsHookEx(hookShellProcHandle);
+	}
+	
 	if (wmDll) {
 		FreeLibrary(wmDll);
-	}
-
-	if (windowEvent) {
-		CloseHandle(windowEvent);
 	}
 }
 
@@ -31,8 +38,53 @@ void ctrlc(int sig) {
 	exit(ERROR_SUCCESS);
 }
 
+LPVOID createAddressSharedMemory() {
+	// Create a shared memory region
+	HANDLE hMapFile = CreateFileMapping(
+		INVALID_HANDLE_VALUE,
+		NULL,
+		PAGE_READWRITE,
+		0,
+		sizeof(DWORD),
+		"lightwmthreadid"
+	);
+
+	if (hMapFile == NULL) {
+		DEBUG_PRINT("Could not create file mapping object (%lu).", GetLastError());
+		return NULL;
+	}
+
+	LPVOID lpMapAddress = MapViewOfFile(
+		hMapFile,   // handle to map object
+		FILE_MAP_ALL_ACCESS, // read/write permission
+		0,
+		0,
+		sizeof(DWORD)
+	);
+
+	if (lpMapAddress == NULL) {
+		DEBUG_PRINT("Could not map view of file (%lu).", GetLastError());
+		CloseHandle(hMapFile);
+		return NULL;
+	}
+
+	return lpMapAddress;
+}
+
 int main() {
     SetProcessDPIAware();
+
+	//Create shared memory
+	LPVOID sharedMemoryAddress = createAddressSharedMemory();
+
+	if(sharedMemoryAddress == NULL) {
+		reportWin32Error(L"Create Shared Memory");
+		goto cleanup;
+	}
+
+	DWORD dwThreadId = GetCurrentThreadId();
+	DEBUG_PRINT("Lightwm.exe thread id: %lu", dwThreadId);
+	CopyMemory((PVOID)sharedMemoryAddress, &dwThreadId, sizeof(DWORD));
 
 	wmDll = LoadLibraryW(L"lightwm_dll");
 	
@@ -44,41 +96,54 @@ int main() {
 	FARPROC shellProc = GetProcAddress(wmDll, "ShellProc");
 
 	if (shellProc == NULL) { 
-		reportWin32Error(L"GetProcAddress");
+		reportWin32Error(L"GetProcAddress for ShellProc");
 		goto cleanup; 
 	}
+	
+	hookShellProcHandle = SetWindowsHookExW(WH_SHELL, (HOOKPROC)shellProc, wmDll, 0);
 
-	windowEvent = CreateEventW(NULL, FALSE, FALSE, L"LightWMWindowEvent");
-
-	if (windowEvent == NULL) {
-		reportWin32Error(L"CreateEvent");
-		goto cleanup;
-	}
-
-	hookHandle = SetWindowsHookExW(WH_SHELL, (HOOKPROC)shellProc, wmDll, 0);
-
-	if (hookHandle == NULL) {
-		reportWin32Error(L"SetWindowsHookExW");
+	if (hookShellProcHandle == NULL) {
+		reportWin32Error(L"SetWindowsHookExW for shell hook");
 		goto cleanup;
 	}
 
 	signal(SIGINT, ctrlc);
 
+	if(!loadConfigFile(NULL))
+	{ 
+		reportWin32Error(L"Load config file");
+		goto cleanup; 
+	}
+	
+	if(!initializeKeyboardConfig(getConfigItems())) 
+	{ 
+		reportWin32Error(L"Setup keyboard config"); 
+		goto cleanup; 
+	}
+
+	// Handle a message loop
 	tileWindows();
-
-	for (;;) {
-		if (WaitForSingleObject(windowEvent, INFINITE) == WAIT_FAILED) {
-			reportWin32Error(L"WaitForSingleObject");
-			goto cleanup;
+	MSG msg;
+	while (GetMessage(&msg, (HWND)-1, 0, 0) != 0) {
+		switch(msg.message)
+		{
+			case WM_HOTKEY:
+				const LRESULT ret = handleHotkey(msg.wParam, msg.lParam);
+				if(ret != ERROR_SUCCESS) { 
+					DEBUG_PRINT("HotKey was unhandled! Ret: %lli", ret); 
+				}
+				break; 
+			case LWM_WINDOW_EVENT:
+				tileWindows();
+				DEBUG_PRINT("LWM_WINDOW_EVENT Message handled");
+				break;
+			default:
+				break;
 		}
-
-		Sleep(200);
-
-		tileWindows();
 	}
 
 cleanup:
 	cleanupObjects();
-
+	
 	return EXIT_FAILURE;
 }

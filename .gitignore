@@ -3,4 +3,13 @@
 *.obj
 *.exp
 *.exe
+*.pdb
+*.ilk
+
 tags
+
+.idea/
+.vs/
+debug/
+release/ 
+*.res
