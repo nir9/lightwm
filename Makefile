@@ -1,19 +1,49 @@
+# Define compiler and linker
 CC = cl
-LD = link
+LINKER = link
+RC = rc
 
-EXEC = lightwm.exe
-DLL = lightwm_dll.dll
+# Define common compiler flags
+CFLAGS = /W3 /EHsc
 
-all: clean_old $(DLL) $(EXEC)
+# Define debug specific compiler flags
+DBGCFLAGS = $(CFLAGS) /DDEBUG /Zi /Wall
 
-$(EXEC): wm.c
-	$(CC) wm.c tiling.c error.c user32.lib /link /out:$(EXEC)
+# Define release specific compiler flags
+RELCFLAGS = $(CFLAGS) /Ox
 
-$(DLL): wm_dll.obj
-	$(LD) wm_dll.obj user32.lib /dll /out:$(DLL)
+# Define source files
+EXE_SRCS = wm.c tiling.c error.c config.c keyboard.c
+DLL_SRCS = wm_dll.c error.c
+RES_FILE = wm_resources.rc
 
-wm_dll.obj: wm_dll.c
-	$(CC) /c wm_dll.c
+# Define directories
+DBGDIR = debug
+RELDIR = release
+
+# Define output names
+EXE_NAME = lightwm.exe
+DLL_NAME = lightwm_dll.dll
+
+all: clean_old debug release
+
+debug: clean prep resource wm.c
+	$(CC) $(DBGCFLAGS) $(EXE_SRCS) $(RES_FILE).res /link user32.lib shell32.lib ole32.lib shlwapi.lib /out:$(DBGDIR)/$(EXE_NAME)
+	$(CC) $(DBGCFLAGS) $(DLL_SRCS) /LD /link user32.lib /DEF:wm_dll.def /out:$(DBGDIR)/$(DLL_NAME)
+
+release: clean prep resource wm.c
+	$(CC) $(RELCFLAGS) $(EXE_SRCS) $(RES_FILE).res /link user32.lib shell32.lib ole32.lib shlwapi.lib /out:$(RELDIR)/$(EXE_NAME)
+	$(CC) $(RELCFLAGS) $(DLL_SRCS) /LD /link user32.lib /DEF:wm_dll.def /out:$(RELDIR)/$(DLL_NAME)
+
+resource: $(RES_FILE)
+	$(RC) /fo $(RES_FILE).res $(RES_FILE)
+
+prep:
+	@echo off > temp.bat && \
+	echo IF NOT EXIST $(DBGDIR) mkdir $(DBGDIR) >> temp.bat && \
+	echo IF NOT EXIST $(RELDIR) mkdir $(RELDIR) >> temp.bat && \
+	temp.bat && \
+	del temp.bat
 
 # Temporary for a couple of weeks
 clean_old:
@@ -22,4 +52,12 @@ clean_old:
 	echo Old cleanup done
 
 clean:
-	del *.obj *.exe *.dll *.lib *.exp
+	del *.obj *.exe *.dll *.lib *.exp *.ilk *.pdb *.res
+
+	@echo off > temp.bat && \
+	echo IF EXIST $(DBGDIR) del /S /Q $(DBGDIR) >> temp.bat && \
+	echo IF EXIST $(RELDIR) del /S /Q $(RELDIR) >> temp.bat && \
+	echo IF EXIST $(DBGDIR) rd /S /Q $(DBGDIR) >> temp.bat && \
+	echo IF EXIST $(RELDIR) rd /S /Q $(RELDIR) >> temp.bat && \
+	temp.bat && \
+	del temp.bat

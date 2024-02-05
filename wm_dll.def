@@ -1,0 +1,3 @@
+LIBRARY lightwm_dll
+EXPORTS
+ShellProc
