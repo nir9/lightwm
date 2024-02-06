@@ -13,7 +13,6 @@ HMODULE wmDll;
 HHOOK hookShellProcHandle;
 
 void cleanupObjects() {
-
 	cleanupKeyboard();
 	
 	cleanupConfigReader();
@@ -42,7 +41,7 @@ LPVOID createAddressSharedMemory() {
 		PAGE_READWRITE,
 		0,
 		sizeof(DWORD),
-		"lightwmthreadid"
+		"LightWMThreadId"
 	);
 
 	if (hMapFile == NULL) {

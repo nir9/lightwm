@@ -6,11 +6,10 @@
 DWORD lightwmMainThreadId = 0;
 
 void readAddress() {
-	// Open the shared memory region
 	HANDLE hMapFile = OpenFileMapping(
-		FILE_MAP_ALL_ACCESS,   // read/write access
-		FALSE,                 // do not inherit the name
-		"lightwmthreadid" // name of mapping object
+		FILE_MAP_ALL_ACCESS,
+		FALSE,
+		"LightWMThreadId"
 	);
 
 	if (hMapFile == NULL) {
@@ -19,8 +18,8 @@ void readAddress() {
 	}
 
 	LPVOID lpMapAddress = MapViewOfFile(
-		hMapFile, // handle to map object
-		FILE_MAP_ALL_ACCESS, // read/write permission
+		hMapFile,
+		FILE_MAP_ALL_ACCESS,
 		0,
 		0,
 		sizeof(DWORD)

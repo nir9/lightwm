@@ -26,7 +26,7 @@ inline void strip(char* str)
 inline void removeControlChars(char* str)
 {
     int i, j = 0;
-    char temp[1024]; // Assuming the maximum length of the string is 1024
+    char temp[1024];
 
     for (i = 0; str[i] != '\0'; ++i)
     {
@@ -35,6 +35,6 @@ inline void removeControlChars(char* str)
         ++j;
     }
 
-    temp[j] = '\0'; // Null terminate the new string
+    temp[j] = '\0';
     strncpy(str, temp, sizeof(temp));
 }

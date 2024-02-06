@@ -1,6 +1,6 @@
 #pragma once
 
-//Just add the action to this preprocessor macro to generate the ENUM and string array
+// Just add the action to this preprocessor macro to generate the ENUM and string array
 #define FOREACH_ACTION(ACTION) \
 	ACTION(ACTION_NONE)  \
 	ACTION(WORKSPACE_1)  \
@@ -9,6 +9,7 @@
 	ACTION(WORKSPACE_4)  \
 	ACTION(NEXT_WINDOW)  \
 	ACTION(PREV_WINDOW) \
+	ACTION(TOGGLE_FOCUS_MODE) \
 
 #define GENERATE_ENUM(ENUM) ENUM, 
 #define GENERATE_STRINGS(STRING) #STRING, 

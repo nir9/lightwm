@@ -34,7 +34,6 @@ void freeConfigItems(ConfigItems *items);
 DWORD readConfigFile() {
     assert(szConfigFilePath != NULL);
 
-    //Try to open the config file based on the path
     FILE *configFileHandle = _wfopen(szConfigFilePath, L"r");
 
     if (configFileHandle == NULL) {
@@ -61,12 +60,10 @@ DWORD readConfigFile() {
             continue;
         }
 
-        //Get the first half of the line
         char *token = strtok(line, " ");
         configItems->configItem[lineCount].name = (char *) malloc(strlen(token) + 1);
         strncpy(configItems->configItem[lineCount].name, token, strlen(token) + 1);
 
-        //Get the second half of the line
         token = strtok(NULL, " ");
         removeControlChars(token);
         configItems->configItem[lineCount].value = (char *) malloc(strlen(token) + 1);

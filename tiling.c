@@ -2,6 +2,7 @@
 #include "error.h"
 #include <Windows.h>
 
+HWND focusedWindow = 0;
 HWND managed[256];
 int currentManagedIndex = 0;
 
@@ -46,11 +47,27 @@ BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lparam) {
 void tileWindows() {
 	currentManagedIndex = 0;
 
-	EnumChildWindows(GetDesktopWindow(), EnumChildProc, 0);
+	if (focusedWindow == 0) {
+		EnumChildWindows(GetDesktopWindow(), EnumChildProc, 0);
+
+	} else {
+		managed[currentManagedIndex] = focusedWindow;
+		currentManagedIndex++;
+	}
 
 	if (currentManagedIndex == 0) {
 		return;
 	}
 
 	TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, currentManagedIndex, managed);
+}
+
+void toggleFocusedWindow(HWND hwnd) {
+	if (focusedWindow != 0) {
+		focusedWindow = 0;
+	} else {
+		focusedWindow = hwnd;
+	}
+
+	tileWindows();
 }

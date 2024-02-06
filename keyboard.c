@@ -2,9 +2,8 @@
 #include <stdint.h>
 #include <assert.h>
 #include <stdio.h>
-
 #include "keyboard.h"
-
+#include "tiling.h"
 #include "debug.h"
 
 UINT getModifier(const char *value);
@@ -62,6 +61,7 @@ void cleanupKeyboard() {
     UnregisterHotKey(NULL, WORKSPACE_4);
     UnregisterHotKey(NULL, NEXT_WINDOW);
     UnregisterHotKey(NULL, PREV_WINDOW);
+    UnregisterHotKey(NULL, TOGGLE_FOCUS_MODE);
     DEBUG_PRINT("Unregistered all hotkeys");
 }
 
@@ -119,6 +119,10 @@ LRESULT handleHotkey(WPARAM wparam, LPARAM lparam) {
         case PREV_WINDOW:
             DEBUG_PRINT("Highlight previous window");
             break;
+		case TOGGLE_FOCUS_MODE:
+			DEBUG_PRINT("Focus Mode");
+			toggleFocusedWindow(GetForegroundWindow());
+			break;
         default:
             DEBUG_PRINT("Unhandled hotkey message! Hotkey ID: %lli", wparam);
             break;
