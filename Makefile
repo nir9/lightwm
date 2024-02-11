@@ -1,27 +1,20 @@
-# Define compiler and linker
 CC = cl
 LINKER = link
 RC = rc
 
-# Define common compiler flags
 CFLAGS = /W3
 
-# Define debug specific compiler flags
 DBGCFLAGS = $(CFLAGS) /DDEBUG /Zi /W3 # temporarly not Wall
 
-# Define release specific compiler flags
 RELCFLAGS = $(CFLAGS) /Ox
 
-# Define source files
 EXE_SRCS = wm.c tiling.c error.c config.c keyboard.c
 DLL_SRCS = wm_dll.c error.c
 RES_FILE = wm_resources.rc
 
-# Define directories
 DBGDIR = debug
 RELDIR = release
 
-# Define output names
 EXE_NAME = lightwm.exe
 DLL_NAME = lightwm_dll.dll
 
@@ -49,6 +42,8 @@ prep:
 clean_old:
 	if exist wm.exe ( del wm.exe )
 	if exist wm_dll.dll ( del wm_dll.dll )
+	if exist lightwm.exe ( del lightwm.exe )
+	if exist lightwm_dll.dll ( del lightwm_dll.dll )
 	echo Old cleanup done
 
 clean:
