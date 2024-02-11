@@ -71,7 +71,7 @@ int main() {
 
 	if(!loadConfigFile(NULL))
 	{ 
-		reportWin32Error(L"Load config file");
+		reportGeneralError(L"Load config file");
 		goto cleanup; 
 	}
 	

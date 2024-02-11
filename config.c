@@ -83,53 +83,29 @@ DWORD readConfigFile() {
     return ERROR_SUCCESS;
 }
 
-void getConfigFilePath() {
-    //TODO: We don't check other results possible results, i.e E_FAIL
+BOOL initConfigFilePath() {
     const HRESULT getAppDataPathResult = SHGetKnownFolderPath(&FOLDERID_RoamingAppData, 0, NULL, &szConfigFilePath);
 
-    if (!SUCCEEDED(getAppDataPathResult)) {
-        switch (getAppDataPathResult) {
-            case E_FAIL:
-                SetLastError(ERROR_DIRECTORY_NOT_SUPPORTED);
-                break;
-            case E_INVALIDARG:
-                SetLastError(ERROR_TIERING_INVALID_FILE_ID);
-                break;
-            default:
-                SetLastError(ERROR_GEN_FAILURE);
-        }
-        reportWin32Error(L"Could not get the users appdata directory");
-        cleanupConfigReader();
-        exit(ERROR_PATH_NOT_FOUND);
+    if (getAppDataPathResult != S_OK) {
+        reportGeneralError(L"Could not get the users app data directory");
+		return FALSE;
     }
 
-    assert(szConfigFilePath != NULL);
-
-    //TODO just found a bug that causes the path to become corrupt
+    // TODO: Check if there may be a bug that causes the path to become corrupt
     const HRESULT concatStringResult = StringCchCatW(szConfigFilePath, MAX_PATH, L"\\lightwm.config\0");
 
-    if (!SUCCEEDED(concatStringResult)) {
-        switch (concatStringResult) {
-            case STRSAFE_E_INVALID_PARAMETER:
-                SetLastError(ERROR_INVALID_PARAMETER);
-                break;
-            case STRSAFE_E_INSUFFICIENT_BUFFER:
-                SetLastError(ERROR_INSUFFICIENT_BUFFER);
-                break;
-            default:
-                SetLastError(ERROR_GEN_FAILURE);
-        }
-
-        reportWin32Error(L"Could not append file name to appdata path");
-        cleanupConfigReader();
-        exit(GetLastError());
+    if (FAILED(concatStringResult)) {
+        reportGeneralError(L"Could not append file name to app data path");
+		return FALSE;
     }
 }
 
 BOOL loadConfigFile(HINSTANCE resourceModuleHandle) {
-    szConfigFilePath = (PWSTR) malloc(sizeof(WCHAR) * MAX_PATH);
-    getConfigFilePath();
-    assert(szConfigFilePath != NULL);
+    szConfigFilePath = (PWSTR)malloc(sizeof(WCHAR) * MAX_PATH);
+
+    if (!initConfigFilePath()) {
+		return FALSE;
+	}
 
     if (!PathFileExistsW(szConfigFilePath)) {
         if (!createDefaultConfigFile(resourceModuleHandle)) {
