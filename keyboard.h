@@ -8,4 +8,4 @@
 
 BOOL initializeKeyboardConfig(ConfigItems* configItems); 
 void cleanupKeyboard(); 
-LRESULT handleHotkey(WPARAM lparam, LPARAM wparam); 
+void handleHotkey(WPARAM lparam, LPARAM wparam); 

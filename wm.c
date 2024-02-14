@@ -69,13 +69,13 @@ LPVOID createAddressSharedMemory() {
 int main() {
     SetProcessDPIAware();
 
-	if(!loadConfigFile(NULL))
+	if (!loadConfigFile(NULL))
 	{ 
 		reportGeneralError(L"Load config file");
 		goto cleanup; 
 	}
 	
-	if(!initializeKeyboardConfig(getConfigItems())) 
+	if (!initializeKeyboardConfig(getConfigItems())) 
 	{ 
 		reportWin32Error(L"Setup keyboard config"); 
 		goto cleanup; 
@@ -83,7 +83,7 @@ int main() {
 
 	LPVOID sharedMemoryAddress = createAddressSharedMemory();
 
-	if(sharedMemoryAddress == NULL) {
+	if (sharedMemoryAddress == NULL) {
 		reportWin32Error(L"Create Shared Memory");
 		goto cleanup;
 	}
@@ -123,16 +123,10 @@ int main() {
 		switch (msg.message)
 		{
 			case WM_HOTKEY:
-				const LRESULT ret = handleHotkey(msg.wParam, msg.lParam);
-
-				if (ret != ERROR_SUCCESS) { 
-					DEBUG_PRINT("HotKey was unhandled! Ret: %lli", ret); 
-				}
-
+				handleHotkey(msg.wParam, msg.lParam);
 				break; 
 			case LWM_WINDOW_EVENT:
 				tileWindows();
-				DEBUG_PRINT("LWM_WINDOW_EVENT Message handled");
 				break;
 			default:
 				break;

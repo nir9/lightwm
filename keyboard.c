@@ -99,7 +99,7 @@ void addKeyboardKeybind(enum Action action, UINT modifier, UINT keyCode) {
     DEBUG_PRINT("Registered %s hotkey", ACTION_STRINGS[action]);
 }
 
-LRESULT handleHotkey(WPARAM wparam, LPARAM lparam) {
+void handleHotkey(WPARAM wparam, LPARAM lparam) {
     switch (wparam) {
         case WORKSPACE_1:
             DEBUG_PRINT("Switch to workspace 1");
@@ -127,6 +127,4 @@ LRESULT handleHotkey(WPARAM wparam, LPARAM lparam) {
             DEBUG_PRINT("Unhandled hotkey message! Hotkey ID: %lli", wparam);
             break;
     }
-
-    return ERROR_SUCCESS;
 }

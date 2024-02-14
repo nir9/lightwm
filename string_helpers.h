@@ -36,5 +36,5 @@ inline void removeControlChars(char* str)
     }
 
     temp[j] = '\0';
-    strncpy(str, temp, sizeof(temp));
+    strncpy(str, temp, strlen(str));
 }

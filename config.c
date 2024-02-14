@@ -1,6 +1,5 @@
 #include "config.h"
 
-#include <Windows.h>
 #include <Shlobj.h>
 #include <wchar.h>
 #include <stdio.h>
@@ -15,44 +14,43 @@
 
 #define BUFF_SIZE 65536
 
-PWSTR szConfigFilePath;
+PWSTR configPath;
 
-char *defaultConfigData = NULL;
+char* defaultConfigData = NULL;
 
-ConfigItems *configItems;
+ConfigItems* configItems;
 
-BOOL createDefaultConfigFile(HINSTANCE);
+bool createDefaultConfigFile(HINSTANCE);
 
-BOOL loadDefaultConfigResourceData(HINSTANCE);
+bool loadDefaultConfigResourceData(HINSTANCE);
 
-BOOL writeDefaultConfigDataToFile();
+bool writeDefaultConfigDataToFile();
 
-size_t getLineCount(FILE *file);
+size_t getLineCount(FILE* file);
 
-void freeConfigItems(ConfigItems *items);
+void freeConfigItems(ConfigItems* items);
 
-DWORD readConfigFile() {
-    assert(szConfigFilePath != NULL);
-
-    FILE *configFileHandle = _wfopen(szConfigFilePath, L"r");
+bool readConfigFile()
+{
+    FILE* configFileHandle = _wfopen(configPath, L"r");
 
     if (configFileHandle == NULL) {
-        reportWin32Error(L"Config file could not be opened");
-        cleanupConfigReader();
-        return ERROR_INVALID_HANDLE;
+        reportGeneralError(L"Config file could not be opened");
+		goto failure;
     }
 
     char line[BUFF_SIZE];
 
-    configItems = (ConfigItems *) malloc(sizeof(ConfigItems));
+    configItems = (ConfigItems*)malloc(sizeof(ConfigItems));
 
-    configItems->configItem = (ConfigItem *) malloc(sizeof(ConfigItem) * getLineCount(configFileHandle) + 1);
-    configItems->configItemsCount = getLineCount(configFileHandle);
+	const numOfLinesInConfig = getLineCount(configFileHandle);
+
+    configItems->configItem = (ConfigItem*)malloc(sizeof(ConfigItem) * numOfLinesInConfig + 1);
+    configItems->configItemsCount = numOfLinesInConfig;
 
     if (configItems->configItem == NULL) {
-        reportWin32Error(L"Allocation ConfigItem memory");
-        cleanupConfigReader();
-        return ERROR_NOT_ENOUGH_MEMORY;
+        reportGeneralError(L"Allocation ConfigItem memory");
+		goto failure;
     }
 
     for (size_t lineCount = 0; fgets(line, sizeof(line), configFileHandle); lineCount++) {
@@ -60,63 +58,58 @@ DWORD readConfigFile() {
             continue;
         }
 
-        char *token = strtok(line, " ");
-        configItems->configItem[lineCount].name = (char *) malloc(strlen(token) + 1);
+        char* token = strtok(line, " ");
+        configItems->configItem[lineCount].name = (char*) malloc(strlen(token) + 1);
         strncpy(configItems->configItem[lineCount].name, token, strlen(token) + 1);
 
         token = strtok(NULL, " ");
         removeControlChars(token);
-        configItems->configItem[lineCount].value = (char *) malloc(strlen(token) + 1);
+        configItems->configItem[lineCount].value = (char*) malloc(strlen(token) + 1);
         strncpy(configItems->configItem[lineCount].value, token, strlen(token) + 1);
-
-        DEBUG_PRINT("Name: %s Value: %s Name LEN: %zu Value LEN: %zu Count: %zu",
-                    configItems->configItem[lineCount].name,
-                    configItems->configItem[lineCount].value,
-                    strlen(configItems->configItem[lineCount].name),
-                    strlen(configItems->configItem[lineCount].value),
-                    lineCount);
     }
-
 
     fclose(configFileHandle);
 
-    return ERROR_SUCCESS;
+	return true;
+
+failure:
+	cleanupConfigReader();
+	return false;
 }
 
-BOOL initConfigFilePath() {
-    const HRESULT getAppDataPathResult = SHGetKnownFolderPath(&FOLDERID_RoamingAppData, 0, NULL, &szConfigFilePath);
+bool initConfigFilePath()
+{
+    const HRESULT getAppDataPathResult = SHGetKnownFolderPath(&FOLDERID_RoamingAppData, 0, NULL, &configPath);
 
     if (getAppDataPathResult != S_OK) {
         reportGeneralError(L"Could not get the users app data directory");
-		return FALSE;
+		return false;
     }
 
     // TODO: Check if there may be a bug that causes the path to become corrupt
-    const HRESULT concatStringResult = StringCchCatW(szConfigFilePath, MAX_PATH, L"\\lightwm.config\0");
+    const HRESULT concatStringResult = StringCchCatW(configPath, MAX_PATH, L"\\lightwm.config\0");
 
     if (FAILED(concatStringResult)) {
         reportGeneralError(L"Could not append file name to app data path");
-		return FALSE;
+		return false;
     }
+
+	return true;
 }
 
-BOOL loadConfigFile(HINSTANCE resourceModuleHandle) {
-    szConfigFilePath = (PWSTR)malloc(sizeof(WCHAR) * MAX_PATH);
-
+bool loadConfigFile(HINSTANCE resourceModuleHandle) {
     if (!initConfigFilePath()) {
-		return FALSE;
+		return false;
 	}
 
-    if (!PathFileExistsW(szConfigFilePath)) {
+    if (!PathFileExistsW(configPath)) {
         if (!createDefaultConfigFile(resourceModuleHandle)) {
             reportWin32Error(L"Create a default config file");
-            return FALSE;
+            return false;
         }
     }
 
-    readConfigFile();
-
-    return TRUE;
+    return readConfigFile();
 }
 
 void freeConfigItems(ConfigItems *items) {
@@ -125,86 +118,77 @@ void freeConfigItems(ConfigItems *items) {
             free(items->configItem[i].name);
             free(items->configItem[i].value);
         }
+
         free(items);
-    } else {
-        DEBUG_PRINT("items ptr was freed earlier!");
     }
 }
 
 void cleanupConfigReader() {
     freeConfigItems(configItems);
-    DEBUG_PRINT("Cleaned up config items");
-
-    CoTaskMemFree(szConfigFilePath);
-    DEBUG_PRINT("Cleaned up filePath ptr");
+    CoTaskMemFree(configPath);
 }
 
-ConfigItems *getConfigItems() {
+ConfigItems* getConfigItems() {
     return configItems;
 }
 
-BOOL createDefaultConfigFile(HINSTANCE resourceModuleHandle) {
+bool createDefaultConfigFile(HINSTANCE resourceModuleHandle) {
     if (!loadDefaultConfigResourceData(resourceModuleHandle)) {
-        return FALSE;
+        return false;
     }
 
     if (!writeDefaultConfigDataToFile()) {
-        return FALSE;
+        return false;
     }
 
-    return TRUE;
+    return true;
 }
 
-BOOL loadDefaultConfigResourceData(HINSTANCE resourceModuleHandle) {
+bool loadDefaultConfigResourceData(HINSTANCE resourceModuleHandle) {
     const HRSRC hRes = FindResource(resourceModuleHandle, MAKEINTRESOURCE(IDR_DEFAULT_CONFIG), RT_RCDATA);
 
     if (hRes == NULL) {
-        puts("Could not get HRSRC Handle");
-        DEBUG_PRINT("FindResource Error: %lu", GetLastError());
-        return FALSE;
+        reportWin32Error(L"FindResource Error");
+        return false;
     }
 
     const HGLOBAL hData = LoadResource(resourceModuleHandle, hRes);
 
     if (hData == NULL) {
-        puts("Could not load resource");
-        DEBUG_PRINT("LoadResource Error: %lu", GetLastError());
-        return FALSE;
+        reportWin32Error(L"LoadResource Error");
+        return false;
     }
 
     const LPVOID defaultConfigResourceData = LockResource(hData);
 
     if (defaultConfigResourceData == NULL) {
-        puts("Could not read resource");
-        DEBUG_PRINT("LockResource Error: %lu", GetLastError());
-        return FALSE;
+        reportWin32Error(L"LockResource Error");
+        return false;
     }
 
 	int nullTerm = 1;
     size_t defaultConfigResourceDataLen = strlen(defaultConfigResourceData) + nullTerm;
-    defaultConfigData = (char *) malloc(sizeof(char) * defaultConfigResourceDataLen); //TODO Error checking
+    defaultConfigData = (char*)malloc(sizeof(char) * defaultConfigResourceDataLen); // TODO Error checking
     strcpy(defaultConfigData, defaultConfigResourceData);
 
-    return TRUE;
+    return true;
 }
 
-BOOL writeDefaultConfigDataToFile() {
-    FILE *configFileHandle = _wfopen(szConfigFilePath, L"w");
+bool writeDefaultConfigDataToFile() {
+    FILE* configFileHandle = _wfopen(configPath, L"w");
 
     if (configFileHandle == NULL) {
-        return FALSE;
+        return false;
     }
 
     fprintf(configFileHandle, defaultConfigData);
 
-    puts("Created default config file");
-
     fclose(configFileHandle);
 
-    return TRUE;
+    return true;
 }
 
-size_t getLineCount(FILE *file) {
+size_t getLineCount(FILE* file) {
     int counter = 0;
     for (;;) {
         char buf[BUFF_SIZE];

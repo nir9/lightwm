@@ -2,6 +2,7 @@
 
 #include <Windows.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef struct _ConfigItem {
     char* name;
@@ -13,7 +14,7 @@ typedef struct _ConfigItems {
     size_t configItemsCount;
 } ConfigItems;
 
-BOOL loadConfigFile(HINSTANCE);
+bool loadConfigFile(HINSTANCE);
 
 void cleanupConfigReader();
 
