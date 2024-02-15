@@ -1,12 +1,23 @@
 #include <Windows.h>
 #include <stdio.h>
+#include "debug.h"
 #include "error.h"
 
 void reportGeneralError(wchar_t* message) {
+#ifdef LIGHTWM_DLL
+	DEBUG_WPRINT(L"[!] Error: %s\n", message);
+#endif
+
+#ifndef LIGHTWM_DLL
 	wprintf(L"[!] Error: %s\n", message);
+#endif
 }
 
 void reportWin32Error(wchar_t* message) {
+#ifdef LIGHTWM_DLL
+	DEBUG_WPRINT(L"[!] Error: %s Failed.\nWin32 Last Error: %ld\n", message, err);
+#endif
+#ifndef LIGHTWM_DLL
 	DWORD err = GetLastError(); 
 
 	wprintf(L"[!] Error: %s Failed.\nWin32 Last Error: %ld\n", message, err);
@@ -25,4 +36,5 @@ void reportWin32Error(wchar_t* message) {
 		L"LightWM Error", 
 		MB_OK | MB_ICONSTOP
 	); 
+#endif
 }

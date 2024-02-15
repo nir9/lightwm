@@ -8,8 +8,8 @@ DBGCFLAGS = $(CFLAGS) /DDEBUG /Zi /W3 # temporarly not Wall
 
 RELCFLAGS = $(CFLAGS) /Ox
 
-EXE_SRCS = wm.c tiling.c error.c config.c keyboard.c
-DLL_SRCS = wm_dll.c error.c
+EXE_SRCS = wm.c tiling.c error.c config.c keyboard.c shared_mem.c
+DLL_SRCS = wm_dll.c error.c shared_mem.c
 RES_FILE = wm_resources.rc
 
 DBGDIR = debug
