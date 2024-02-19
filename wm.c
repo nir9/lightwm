@@ -13,7 +13,8 @@
 HMODULE wmDll;
 HHOOK hookShellProcHandle;
 
-void cleanupObjects() {
+void cleanupObjects()
+{
 	cleanupKeyboard();
 	
 	cleanupConfigReader();
@@ -29,22 +30,22 @@ void cleanupObjects() {
 	cleanupMemoryMapFile();
 }
 
-void ctrlc(int sig) {
+void ctrlc(int sig)
+{
 	cleanupObjects();
 	exit(ERROR_SUCCESS);
 }
 
-int main() {
+int main()
+{
     SetProcessDPIAware();
 
-	if (!loadConfigFile(NULL))
-	{ 
+	if (!loadConfigFile(NULL)) {
 		reportGeneralError(L"Load config file");
 		goto cleanup; 
 	}
 	
-	if (!initializeKeyboardConfig(getConfigItems())) 
-	{ 
+	if (!initializeKeyboardConfig(getConfigItems())) {
 		reportGeneralError(L"Setup keyboard config"); 
 		goto cleanup; 
 	}
@@ -82,8 +83,7 @@ int main() {
 	MSG msg;
 
 	while (GetMessage(&msg, (HWND)-1, 0, 0) != 0) {
-		switch (msg.message)
-		{
+		switch (msg.message) {
 			case WM_HOTKEY:
 				handleHotkey(msg.wParam, msg.lParam);
 				break; 

@@ -97,14 +97,15 @@ bool initConfigFilePath()
 	return true;
 }
 
-bool loadConfigFile(HINSTANCE resourceModuleHandle) {
+bool loadConfigFile(HINSTANCE resourceModuleHandle)
+{
     if (!initConfigFilePath()) {
 		return false;
 	}
 
     if (!PathFileExistsW(configPath)) {
         if (!createDefaultConfigFile(resourceModuleHandle)) {
-            reportWin32Error(L"Create a default config file");
+            reportGeneralError(L"Create a default config file");
             return false;
         }
     }
@@ -112,7 +113,8 @@ bool loadConfigFile(HINSTANCE resourceModuleHandle) {
     return readConfigFile();
 }
 
-void freeConfigItems(ConfigItems *items) {
+void freeConfigItems(ConfigItems *items)
+{
     if (items != NULL) {
         for(size_t i = 0; i < items->configItemsCount; i++) {
             free(items->configItem[i].name);
@@ -123,16 +125,19 @@ void freeConfigItems(ConfigItems *items) {
     }
 }
 
-void cleanupConfigReader() {
+void cleanupConfigReader()
+{
     freeConfigItems(configItems);
     CoTaskMemFree(configPath);
 }
 
-ConfigItems* getConfigItems() {
+ConfigItems* getConfigItems()
+{
     return configItems;
 }
 
-bool createDefaultConfigFile(HINSTANCE resourceModuleHandle) {
+bool createDefaultConfigFile(HINSTANCE resourceModuleHandle)
+{
     if (!loadDefaultConfigResourceData(resourceModuleHandle)) {
         return false;
     }
@@ -144,22 +149,23 @@ bool createDefaultConfigFile(HINSTANCE resourceModuleHandle) {
     return true;
 }
 
-bool loadDefaultConfigResourceData(HINSTANCE resourceModuleHandle) {
-    const HRSRC hRes = FindResource(resourceModuleHandle, MAKEINTRESOURCE(IDR_DEFAULT_CONFIG), RT_RCDATA);
+bool loadDefaultConfigResourceData(HINSTANCE resourceModuleHandle)
+{
+    const HRSRC resourceHandle = FindResource(resourceModuleHandle, MAKEINTRESOURCE(IDR_DEFAULT_CONFIG), RT_RCDATA);
 
-    if (hRes == NULL) {
+    if (resourceHandle == NULL) {
         reportWin32Error(L"FindResource Error");
         return false;
     }
 
-    const HGLOBAL hData = LoadResource(resourceModuleHandle, hRes);
+    const HGLOBAL loadedResourceHandle = LoadResource(resourceModuleHandle, resourceHandle);
 
-    if (hData == NULL) {
+    if (loadedResourceHandle == NULL) {
         reportWin32Error(L"LoadResource Error");
         return false;
     }
 
-    const LPVOID defaultConfigResourceData = LockResource(hData);
+    const LPVOID defaultConfigResourceData = LockResource(loadedResourceHandle);
 
     if (defaultConfigResourceData == NULL) {
         reportWin32Error(L"LockResource Error");
@@ -168,13 +174,21 @@ bool loadDefaultConfigResourceData(HINSTANCE resourceModuleHandle) {
 
 	int nullTerm = 1;
     size_t defaultConfigResourceDataLen = strlen(defaultConfigResourceData) + nullTerm;
-    defaultConfigData = (char*)malloc(sizeof(char) * defaultConfigResourceDataLen); // TODO Error checking
+
+    defaultConfigData = (char*)malloc(sizeof(char) * defaultConfigResourceDataLen);
+
+	if (!defaultConfigData) {
+		reportGeneralError(L"Find to allocate memory for default config data");
+		return false;
+	}
+
     strcpy(defaultConfigData, defaultConfigResourceData);
 
     return true;
 }
 
-bool writeDefaultConfigDataToFile() {
+bool writeDefaultConfigDataToFile()
+{
     FILE* configFileHandle = _wfopen(configPath, L"w");
 
     if (configFileHandle == NULL) {
@@ -188,7 +202,8 @@ bool writeDefaultConfigDataToFile() {
     return true;
 }
 
-size_t getLineCount(FILE* file) {
+size_t getLineCount(FILE* file)
+{
     int counter = 0;
     for (;;) {
         char buf[BUFF_SIZE];
