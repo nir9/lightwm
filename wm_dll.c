@@ -1,3 +1,4 @@
+// This DLL is loaded into many processes on the computer, therefore we need to keep the logic here as simple as possible to avoid slowing down the system
 #define LIGHTWM_DLL
 
 #include <Windows.h>
