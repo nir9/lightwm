@@ -1,13 +1,11 @@
 #include <Windows.h>
 #include <signal.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include "tiling.h"
 #include "error.h"
 #include "keyboard.h"
 #include "config.h"
 #include "messages.h" 
-#include "debug.h"
 #include "shared_mem.h"
 
 HMODULE wmDll;

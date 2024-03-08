@@ -5,16 +5,48 @@
 #include "keyboard.h"
 #include "tiling.h"
 #include "debug.h"
+#include "error.h"
 
-UINT getModifier(const char *value);
+UINT getModifier(const char *value)
+{
+    if (strncmp(value, "alt", 3) == 0) {
+        return MOD_ALT;
+    }
 
-UINT getKeyCode(const char *value);
+    if (strncmp(value, "win", 3) == 0) {
+        return MOD_WIN;
+    }
 
-void addKeyboardKeybind(enum Action action, UINT modifier, UINT keyCode);
+    if (strncmp(value, "ctrl", 4) == 0) {
+        return MOD_CONTROL;
+    }
 
-BOOL bindKeyIfRelevant(ConfigItem configItem, enum Action action) {
+    if (strncmp(value, "shift", 5) == 0) {
+        return MOD_SHIFT;
+    }
+    return MOD_ALT; // TODO Throw an error here
+}
+
+UINT getKeyCode(const char *value)
+{
+    DEBUG_PRINT("GetKeyCode char value '%c'", value[strlen(value) - 1]);
+    return VkKeyScanEx(value[strlen(value) - 1], GetKeyboardLayout(0));
+}
+
+void addKeyboardKeybind(enum Action action, UINT modifier, UINT keyCode)
+{
+    if (!RegisterHotKey(NULL, action, modifier | MOD_NOREPEAT, keyCode)) {
+        reportWin32Error(L"Failed to register hotkey");
+		return;
+    }
+
+    DEBUG_PRINT("Registered %s hotkey", ACTION_STRINGS[action]);
+}
+
+bool bindKeyIfRelevant(ConfigItem configItem, enum Action action)
+{
 	if (configItem.name == NULL) {
-		return FALSE;
+		return false;
 	}
 
 	if (strcmp(configItem.name, ACTION_STRINGS[action]) == 0) {
@@ -24,37 +56,35 @@ BOOL bindKeyIfRelevant(ConfigItem configItem, enum Action action) {
 			getKeyCode(configItem.value)
 		);
 
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
-BOOL initializeKeyboardConfig(const ConfigItems *configItems) {
-    assert(configItems != NULL);
-    assert(configItems->configItem != NULL);
-    assert(configItems->configItemsCount != 0);
-
+bool initializeKeyboardConfig(ConfigItems *configItems)
+{
     for (size_t i = 1; i < configItems->configItemsCount; i++) {
-		BOOL foundKey = FALSE;
+		bool foundKey = false;
 
 		for (size_t j = 0; j < TOTAL_ACTIONS_COUNT; j++) {
 			if (bindKeyIfRelevant(configItems->configItem[i], (enum Action)j)) {
-				foundKey = TRUE;
+				foundKey = true;
 				break;
 			}
 		}
 
 		if (!foundKey) {
 			wprintf(L"\nError: The lightwm.config configuration in APPDATA contains the action %S which is not supported by LightWM.\nYou can either delete the configuration in APPDATA and next time LightWM starts, it will create a new default one over there.\nOr you can take a look at the default config and understand the difference with your current config\n\n", configItems->configItem[i].name);
-			return FALSE;
+			return false;
 		}
     }
 
-    return TRUE;
+    return true;
 }
 
-void cleanupKeyboard() {
+void cleanupKeyboard()
+{
     UnregisterHotKey(NULL, WORKSPACE_1);
     UnregisterHotKey(NULL, WORKSPACE_2);
     UnregisterHotKey(NULL, WORKSPACE_3);
@@ -62,41 +92,6 @@ void cleanupKeyboard() {
     UnregisterHotKey(NULL, NEXT_WINDOW);
     UnregisterHotKey(NULL, PREV_WINDOW);
     UnregisterHotKey(NULL, TOGGLE_FOCUS_MODE);
-    DEBUG_PRINT("Unregistered all hotkeys");
-}
-
-UINT getModifier(const char *value) {
-    if (strncmp(value, "alt", 3) == 0) {
-        return MOD_ALT;
-    }
-    if (strncmp(value, "win", 3) == 0) {
-        return MOD_WIN;
-    }
-    if (strncmp(value, "ctrl", 4) == 0) {
-        return MOD_CONTROL;
-    }
-    if (strncmp(value, "shift", 5) == 0) {
-        return MOD_SHIFT;
-    }
-    return MOD_ALT; //TODO Throw an error here
-}
-
-UINT getKeyCode(const char *value) {
-    DEBUG_PRINT("GetKeyCode char value '%c'", value[strlen(value) - 1]);
-    return VkKeyScanEx(value[strlen(value) - 1], GetKeyboardLayout(0));
-}
-
-void addKeyboardKeybind(enum Action action, UINT modifier, UINT keyCode) {
-    if (!RegisterHotKey(NULL, action, modifier | MOD_NOREPEAT, keyCode)) {
-        if (GetLastError() == ERROR_HOTKEY_ALREADY_REGISTERED) {
-            puts("Warn: Hotkey already registerd\n");
-            return;
-        }
-
-        MessageBox(NULL, "Failed to register hotkey.", "Error", MB_OK | MB_ICONERROR);
-    }
-
-    DEBUG_PRINT("Registered %s hotkey", ACTION_STRINGS[action]);
 }
 
 void handleHotkey(WPARAM wparam, LPARAM lparam) {
@@ -120,7 +115,6 @@ void handleHotkey(WPARAM wparam, LPARAM lparam) {
             DEBUG_PRINT("Highlight previous window");
             break;
 		case TOGGLE_FOCUS_MODE:
-			DEBUG_PRINT("Focus Mode");
 			toggleFocusedWindow(GetForegroundWindow());
 			break;
         default:
