@@ -1,12 +1,10 @@
 #include "config.h"
-
 #include <Shlobj.h>
 #include <wchar.h>
 #include <stdio.h>
 #include <strsafe.h>
 #include <shlwapi.h>
 #include <assert.h>
-
 #include "error.h"
 #include "resource.h"
 #include "string_helpers.h"
@@ -14,21 +12,116 @@
 
 #define BUFF_SIZE 65536
 
-PWSTR configPath;
+wchar_t* configPath;
 
 char* defaultConfigData = NULL;
 
 ConfigItems* configItems;
 
-bool createDefaultConfigFile(HINSTANCE);
+void freeConfigItems(ConfigItems *items)
+{
+    if (items != NULL) {
+        for(size_t i = 0; i < items->configItemsCount; i++) {
+            free(items->configItem[i].name);
+            free(items->configItem[i].value);
+        }
 
-bool loadDefaultConfigResourceData(HINSTANCE);
+        free(items);
+    }
+}
 
-bool writeDefaultConfigDataToFile();
+size_t getLineCount(FILE* file)
+{
+    int counter = 0;
+    for (;;) {
+        char buf[BUFF_SIZE];
+        const size_t res = fread(buf, 1, BUFF_SIZE, file);
+        if (ferror(file)) {
+            return -1;
+        }
 
-size_t getLineCount(FILE* file);
+        for (int i = 0; i < res; i++) {
+            if (buf[i] == '\n') {
+                counter++;
+            }
+        }
 
-void freeConfigItems(ConfigItems* items);
+        if (feof(file)) {
+            break;
+        }
+    }
+
+    fseek(file, 0, SEEK_SET);
+
+    return counter;
+}
+
+bool writeDefaultConfigDataToFile()
+{
+    FILE* configFileHandle = _wfopen(configPath, L"w");
+
+    if (configFileHandle == NULL) {
+        return false;
+    }
+
+    fprintf(configFileHandle, defaultConfigData);
+
+    fclose(configFileHandle);
+
+    return true;
+}
+
+bool loadDefaultConfigResourceData(HINSTANCE resourceModuleHandle)
+{
+    const HRSRC resourceHandle = FindResource(resourceModuleHandle, MAKEINTRESOURCE(IDR_DEFAULT_CONFIG), RT_RCDATA);
+
+    if (resourceHandle == NULL) {
+        reportWin32Error(L"FindResource Error");
+        return false;
+    }
+
+    const HGLOBAL loadedResourceHandle = LoadResource(resourceModuleHandle, resourceHandle);
+
+    if (loadedResourceHandle == NULL) {
+        reportWin32Error(L"LoadResource Error");
+        return false;
+    }
+
+    const LPVOID defaultConfigResourceData = LockResource(loadedResourceHandle);
+
+    if (defaultConfigResourceData == NULL) {
+        reportWin32Error(L"LockResource Error");
+        return false;
+    }
+
+	int nullTerm = 1;
+    size_t defaultConfigResourceDataLen = strlen(defaultConfigResourceData) + nullTerm;
+
+    defaultConfigData = (char*)malloc(sizeof(char) * defaultConfigResourceDataLen);
+
+	if (!defaultConfigData) {
+		reportGeneralError(L"Find to allocate memory for default config data");
+		return false;
+	}
+
+    strcpy(defaultConfigData, defaultConfigResourceData);
+
+    return true;
+}
+
+bool createDefaultConfigFile(HINSTANCE resourceModuleHandle)
+{
+    if (!loadDefaultConfigResourceData(resourceModuleHandle)) {
+        return false;
+    }
+
+    if (!writeDefaultConfigDataToFile()) {
+        return false;
+    }
+
+    return true;
+}
+
 
 bool readConfigFile()
 {
@@ -43,7 +136,7 @@ bool readConfigFile()
 
     configItems = (ConfigItems*)malloc(sizeof(ConfigItems));
 
-	const numOfLinesInConfig = getLineCount(configFileHandle);
+	const int numOfLinesInConfig = getLineCount(configFileHandle);
 
     configItems->configItem = (ConfigItem*)malloc(sizeof(ConfigItem) * numOfLinesInConfig + 1);
     configItems->configItemsCount = numOfLinesInConfig;
@@ -113,18 +206,6 @@ bool loadConfigFile(HINSTANCE resourceModuleHandle)
     return readConfigFile();
 }
 
-void freeConfigItems(ConfigItems *items)
-{
-    if (items != NULL) {
-        for(size_t i = 0; i < items->configItemsCount; i++) {
-            free(items->configItem[i].name);
-            free(items->configItem[i].value);
-        }
-
-        free(items);
-    }
-}
-
 void cleanupConfigReader()
 {
     freeConfigItems(configItems);
@@ -134,96 +215,4 @@ void cleanupConfigReader()
 ConfigItems* getConfigItems()
 {
     return configItems;
-}
-
-bool createDefaultConfigFile(HINSTANCE resourceModuleHandle)
-{
-    if (!loadDefaultConfigResourceData(resourceModuleHandle)) {
-        return false;
-    }
-
-    if (!writeDefaultConfigDataToFile()) {
-        return false;
-    }
-
-    return true;
-}
-
-bool loadDefaultConfigResourceData(HINSTANCE resourceModuleHandle)
-{
-    const HRSRC resourceHandle = FindResource(resourceModuleHandle, MAKEINTRESOURCE(IDR_DEFAULT_CONFIG), RT_RCDATA);
-
-    if (resourceHandle == NULL) {
-        reportWin32Error(L"FindResource Error");
-        return false;
-    }
-
-    const HGLOBAL loadedResourceHandle = LoadResource(resourceModuleHandle, resourceHandle);
-
-    if (loadedResourceHandle == NULL) {
-        reportWin32Error(L"LoadResource Error");
-        return false;
-    }
-
-    const LPVOID defaultConfigResourceData = LockResource(loadedResourceHandle);
-
-    if (defaultConfigResourceData == NULL) {
-        reportWin32Error(L"LockResource Error");
-        return false;
-    }
-
-	int nullTerm = 1;
-    size_t defaultConfigResourceDataLen = strlen(defaultConfigResourceData) + nullTerm;
-
-    defaultConfigData = (char*)malloc(sizeof(char) * defaultConfigResourceDataLen);
-
-	if (!defaultConfigData) {
-		reportGeneralError(L"Find to allocate memory for default config data");
-		return false;
-	}
-
-    strcpy(defaultConfigData, defaultConfigResourceData);
-
-    return true;
-}
-
-bool writeDefaultConfigDataToFile()
-{
-    FILE* configFileHandle = _wfopen(configPath, L"w");
-
-    if (configFileHandle == NULL) {
-        return false;
-    }
-
-    fprintf(configFileHandle, defaultConfigData);
-
-    fclose(configFileHandle);
-
-    return true;
-}
-
-size_t getLineCount(FILE* file)
-{
-    int counter = 0;
-    for (;;) {
-        char buf[BUFF_SIZE];
-        const size_t res = fread(buf, 1, BUFF_SIZE, file);
-        if (ferror(file)) {
-            return -1;
-        }
-
-        for (int i = 0; i < res; i++) {
-            if (buf[i] == '\n') {
-                counter++;
-            }
-        }
-
-        if (feof(file)) {
-            break;
-        }
-    }
-
-    fseek(file, 0, SEEK_SET);
-
-    return counter;
 }
