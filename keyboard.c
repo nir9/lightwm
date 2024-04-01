@@ -6,8 +6,11 @@
 #include "tiling.h"
 #include "debug.h"
 #include "error.h"
+#include "config.h"
 
-UINT getModifier(const char *value)
+#define TOGGLE_FOCUS_MODE_HOYKEY_ID 0
+
+UINT getModifier(const char* value)
 {
     if (strncmp(value, "alt", 3) == 0) {
         return MOD_ALT;
@@ -33,88 +36,29 @@ UINT getKeyCode(const char *value)
     return VkKeyScanEx(value[strlen(value) - 1], GetKeyboardLayout(0));
 }
 
-void addKeyboardKeybind(enum Action action, UINT modifier, UINT keyCode)
+void addKeyboardKeybind(int id, UINT modifier, UINT keyCode)
 {
-    if (!RegisterHotKey(NULL, action, modifier | MOD_NOREPEAT, keyCode)) {
+    if (!RegisterHotKey(NULL, id, modifier | MOD_NOREPEAT, keyCode)) {
         reportWin32Error(L"Failed to register hotkey");
 		return;
     }
-
-    DEBUG_PRINT("Registered %s hotkey", ACTION_STRINGS[action]);
 }
 
-bool bindKeyIfRelevant(ConfigItem configItem, enum Action action)
+bool initializeKeyboardConfig()
 {
-	if (configItem.name == NULL) {
-		return false;
-	}
-
-	if (strcmp(configItem.name, ACTION_STRINGS[action]) == 0) {
-		addKeyboardKeybind(
-			action,
-			getModifier(configItem.value),
-			getKeyCode(configItem.value)
-		);
-
-		return true;
-	}
-
-	return false;
-}
-
-bool initializeKeyboardConfig(ConfigItems *configItems)
-{
-    for (size_t i = 1; i < configItems->configItemsCount; i++) {
-		bool foundKey = false;
-
-		for (size_t j = 0; j < TOTAL_ACTIONS_COUNT; j++) {
-			if (bindKeyIfRelevant(configItems->configItem[i], (enum Action)j)) {
-				foundKey = true;
-				break;
-			}
-		}
-
-		if (!foundKey) {
-			wprintf(L"\nError: The lightwm.config configuration in APPDATA contains the action %S which is not supported by LightWM.\nYou can either delete the configuration in APPDATA and next time LightWM starts, it will create a new default one over there.\nOr you can take a look at the default config and understand the difference with your current config\n\n", configItems->configItem[i].name);
-			return false;
-		}
-    }
+	addKeyboardKeybind(TOGGLE_FOCUS_MODE_HOYKEY_ID, getModifier(FOCUS_MODE_HOTKEY), getKeyCode(FOCUS_MODE_HOTKEY));
 
     return true;
 }
 
 void cleanupKeyboard()
 {
-    UnregisterHotKey(NULL, WORKSPACE_1);
-    UnregisterHotKey(NULL, WORKSPACE_2);
-    UnregisterHotKey(NULL, WORKSPACE_3);
-    UnregisterHotKey(NULL, WORKSPACE_4);
-    UnregisterHotKey(NULL, NEXT_WINDOW);
-    UnregisterHotKey(NULL, PREV_WINDOW);
-    UnregisterHotKey(NULL, TOGGLE_FOCUS_MODE);
+    UnregisterHotKey(NULL, TOGGLE_FOCUS_MODE_HOYKEY_ID);
 }
 
 void handleHotkey(WPARAM wparam, LPARAM lparam) {
     switch (wparam) {
-        case WORKSPACE_1:
-            DEBUG_PRINT("Switch to workspace 1");
-            break;
-        case WORKSPACE_2:
-            DEBUG_PRINT("Switch to workspace 2");
-            break;
-        case WORKSPACE_3:
-            DEBUG_PRINT("Switch to workspace 3");
-            break;
-        case WORKSPACE_4:
-            DEBUG_PRINT("Switch to workspace 4");
-            break;
-        case NEXT_WINDOW:
-            DEBUG_PRINT("Highlight next window");
-            break;
-        case PREV_WINDOW:
-            DEBUG_PRINT("Highlight previous window");
-            break;
-		case TOGGLE_FOCUS_MODE:
+		case TOGGLE_FOCUS_MODE_HOYKEY_ID:
 			toggleFocusedWindow(GetForegroundWindow());
 			break;
         default:

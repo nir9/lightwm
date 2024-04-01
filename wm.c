@@ -4,7 +4,6 @@
 #include "tiling.h"
 #include "error.h"
 #include "keyboard.h"
-#include "config.h"
 #include "messages.h" 
 #include "shared_mem.h"
 
@@ -15,8 +14,6 @@ void cleanupObjects()
 {
 	cleanupKeyboard();
 	
-	cleanupConfigReader();
-
 	if (hookShellProcHandle) {
 		UnhookWindowsHookEx(hookShellProcHandle);
 	}
@@ -38,12 +35,7 @@ int main()
 {
     SetProcessDPIAware();
 
-	if (!loadConfigFile(NULL)) {
-		reportGeneralError(L"Load config file");
-		goto cleanup; 
-	}
-	
-	if (!initializeKeyboardConfig(getConfigItems())) {
+	if (!initializeKeyboardConfig()) {
 		reportGeneralError(L"Setup keyboard config"); 
 		goto cleanup; 
 	}
@@ -87,8 +79,6 @@ int main()
 				break; 
 			case LWM_WINDOW_EVENT:
 				tileWindows();
-				break;
-			default:
 				break;
 		}
 	}
