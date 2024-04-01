@@ -7,6 +7,8 @@ After building, run the executable ```lightwm.exe``` which will reside in the re
 
 Upon running, it will immediately tile all the non-minimized windows on your screen.
 
+You can use ```alt+j``` and ```alt+k``` to go to the next/previous window with your keyboard.
+
 You can use ```alt+f``` hotkey to toggle focus mode which will disable tiling and put the focused window in fullscreen, pressing ```alt+f``` again will enable tiling again and tile all non-minimized windows
 
 ## Building

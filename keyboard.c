@@ -9,6 +9,8 @@
 #include "config.h"
 
 #define TOGGLE_FOCUS_MODE_HOYKEY_ID 0
+#define NEXT_WINDOW_HOTKEY_ID 1
+#define PREV_WINDOW_HOTKEY_ID 2
 
 UINT getModifier(const char* value)
 {
@@ -47,6 +49,8 @@ void addKeyboardKeybind(int id, UINT modifier, UINT keyCode)
 bool initializeKeyboardConfig()
 {
 	addKeyboardKeybind(TOGGLE_FOCUS_MODE_HOYKEY_ID, getModifier(FOCUS_MODE_HOTKEY), getKeyCode(FOCUS_MODE_HOTKEY));
+	addKeyboardKeybind(NEXT_WINDOW_HOTKEY_ID, getModifier(NEXT_WINDOW_HOTKEY), getKeyCode(NEXT_WINDOW_HOTKEY));
+	addKeyboardKeybind(PREV_WINDOW_HOTKEY_ID, getModifier(PREV_WINDOW_HOTKEY), getKeyCode(PREV_WINDOW_HOTKEY));
 
     return true;
 }
@@ -54,12 +58,20 @@ bool initializeKeyboardConfig()
 void cleanupKeyboard()
 {
     UnregisterHotKey(NULL, TOGGLE_FOCUS_MODE_HOYKEY_ID);
+    UnregisterHotKey(NULL, NEXT_WINDOW_HOTKEY_ID);
+    UnregisterHotKey(NULL, PREV_WINDOW_HOTKEY_ID);
 }
 
 void handleHotkey(WPARAM wparam, LPARAM lparam) {
     switch (wparam) {
 		case TOGGLE_FOCUS_MODE_HOYKEY_ID:
 			toggleFocusedWindow(GetForegroundWindow());
+			break;
+		case PREV_WINDOW_HOTKEY_ID:
+			focusNextWindow(true);
+			break;
+		case NEXT_WINDOW_HOTKEY_ID:
+			focusNextWindow(false);
 			break;
         default:
             DEBUG_PRINT("Unhandled hotkey message! Hotkey ID: %lli", wparam);
