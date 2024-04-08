@@ -89,6 +89,7 @@ void toggleFocusedWindow(HWND hwnd)
 void focusNextWindow(bool goBack)
 {
 	currentFocusedManaged += goBack ? -1 : 1;
+
 	if (currentFocusedManaged < 0) {
 		currentFocusedManaged = currentManagedIndex - 1;
 	}

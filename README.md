@@ -1,5 +1,6 @@
 # LightWM
-### Minimalist Tiling Window Manager For MS-Windows
+
+### Minimalist Tiling Window Manager For Microsoft Windows
 
 ## Usage
 
@@ -23,8 +24,7 @@ I haven't tried building with a different VS version or building x86, but that m
 
 ## Todo
 
-- Add keyboard navigation between tiled windows
-- Add support for Win10+ multiple desktops (CTRL + WinKey + Left/Right)
+- Add support for workspaces (maintain a list of maximized windows for each workspace)
 
 ## Coding Conventions
 

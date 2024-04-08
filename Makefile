@@ -1,30 +1,18 @@
-CC = cl
-LINKER = link
-
-CFLAGS = /W3
-
-DBGCFLAGS = $(CFLAGS) /DDEBUG /Zi /W3 # temporarly not Wall
-
-RELCFLAGS = $(CFLAGS) /Ox
-
 EXE_SRCS = wm.c tiling.c error.c keyboard.c shared_mem.c
 DLL_SRCS = wm_dll.c error.c shared_mem.c
 
 DBGDIR = debug
 RELDIR = release
 
-EXE_NAME = lightwm.exe
-DLL_NAME = lightwm_dll.dll
-
 all: clean_old debug release
 
 debug: prep wm.c
-	$(CC) $(DBGCFLAGS) $(EXE_SRCS) /link user32.lib shell32.lib ole32.lib shlwapi.lib /out:$(DBGDIR)/$(EXE_NAME)
-	$(CC) $(DBGCFLAGS) $(DLL_SRCS) /LD /link user32.lib /DEF:wm_dll.def /out:$(DBGDIR)/$(DLL_NAME)
+	cl /DDEBUG /Zi /W3 $(EXE_SRCS) /link user32.lib /out:debug/lightwm.exe
+	cl /DDEBUG /Zi /W3 $(DLL_SRCS) /LD /link user32.lib /out:debug/lightwm_dll.dll
 
 release: prep wm.c
-	$(CC) $(RELCFLAGS) $(EXE_SRCS) /link user32.lib shell32.lib ole32.lib shlwapi.lib /out:$(RELDIR)/$(EXE_NAME)
-	$(CC) $(RELCFLAGS) $(DLL_SRCS) /LD /link user32.lib /DEF:wm_dll.def /out:$(RELDIR)/$(DLL_NAME)
+	$(CC) /Ox $(EXE_SRCS) /link user32.lib /out:release/lightwm.exe
+	$(CC) /Ox $(DLL_SRCS) /LD /link user32.lib /out:release/lightwm_dll.dll
 
 prep:
 	@echo off > temp.bat && \
