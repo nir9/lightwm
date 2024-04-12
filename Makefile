@@ -11,8 +11,8 @@ debug: prep wm.c
 	cl /DDEBUG /Zi /W3 $(DLL_SRCS) /LD /link user32.lib /out:debug/lightwm_dll.dll
 
 release: prep wm.c
-	$(CC) /Ox $(EXE_SRCS) /link user32.lib /out:release/lightwm.exe
-	$(CC) /Ox $(DLL_SRCS) /LD /link user32.lib /out:release/lightwm_dll.dll
+	cl /Ox $(EXE_SRCS) /link user32.lib /out:release/lightwm.exe
+	cl /Ox $(DLL_SRCS) /LD /link user32.lib /out:release/lightwm_dll.dll
 
 prep:
 	@echo off > temp.bat && \

@@ -5,4 +5,4 @@
 
 void tileWindows();
 void toggleFocusedWindow(HWND hwnd);
-void focusNextWindow();
+void focusNextWindow(bool goBack);
