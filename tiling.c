@@ -5,12 +5,12 @@
 
 HWND focusedWindow = 0;
 HWND managed[256];
-int currentManagedIndex = 0;
-int currentFocusedManaged = 0;
+int numOfManagedWindows = 0;
+int currentFocusedWindowIndex = 0;
 
 BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lparam)
 {
-	if (currentManagedIndex > 255) {
+	if (numOfManagedWindows > 255) {
 		return FALSE;
 	}
 
@@ -52,27 +52,27 @@ BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lparam)
 	DEBUG_PRINT("title: %s\n", theTitle);
 	DEBUG_PRINT("style: %x\n", winInfo.dwExStyle);
 
-	managed[currentManagedIndex] = hwnd;
-	currentManagedIndex++;
+	managed[numOfManagedWindows] = hwnd;
+	numOfManagedWindows++;
 	return TRUE;
 }
 
 void tileWindows()
 {
-	currentManagedIndex = 0;
+	numOfManagedWindows = 0;
 
 	if (focusedWindow == 0) {
 		EnumChildWindows(GetDesktopWindow(), EnumChildProc, 0);
 	} else {
-		managed[currentManagedIndex] = focusedWindow;
-		currentManagedIndex++;
+		managed[numOfManagedWindows] = focusedWindow;
+		numOfManagedWindows++;
 	}
 
-	if (currentManagedIndex == 0) {
+	if (numOfManagedWindows == 0) {
 		return;
 	}
 
-	TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, currentManagedIndex, managed);
+	TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, numOfManagedWindows, managed);
 }
 
 void toggleFocusedWindow(HWND hwnd)
@@ -88,15 +88,13 @@ void toggleFocusedWindow(HWND hwnd)
 
 void focusNextWindow(bool goBack)
 {
-	currentFocusedManaged += goBack ? -1 : 1;
+	currentFocusedWindowIndex += goBack ? -1 : 1;
 
-	if (currentFocusedManaged < 0) {
-		currentFocusedManaged = currentManagedIndex - 1;
+	if (currentFocusedWindowIndex < 0) {
+		currentFocusedWindowIndex = numOfManagedWindows - 1;
+	} else if (currentFocusedWindowIndex == numOfManagedWindows) {
+		currentFocusedWindowIndex = 0;
 	}
 
-	if (managed[currentFocusedManaged] == 0) {
-		currentFocusedManaged = 0;
-	}
-
-	SwitchToThisWindow(managed[currentFocusedManaged], FALSE);
+	SwitchToThisWindow(managed[currentFocusedWindowIndex], FALSE);
 }
