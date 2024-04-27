@@ -1,3 +1,9 @@
+#define TOGGLE_FOCUS_MODE_HOYKEY_ID 0
+#define NEXT_WINDOW_HOTKEY_ID 1
+#define PREV_WINDOW_HOTKEY_ID 2
+#define QUIT_LIGHTWM_HOTKEY_ID 3
+
 #define FOCUS_MODE_HOTKEY "alt+f"
 #define NEXT_WINDOW_HOTKEY "alt+j"
 #define PREV_WINDOW_HOTKEY "alt+k"
+#define QUIT_LIGHTWM_HOTKEY "alt+q"

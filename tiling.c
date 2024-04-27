@@ -1,6 +1,5 @@
 #include "tiling.h"
 #include "error.h"
-#include "debug.h"
 #include <Windows.h>
 
 HWND focusedWindow = 0;
@@ -45,12 +44,6 @@ BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lparam)
 	if (clientRect.right < 100 || clientRect.bottom < 100){
 		return TRUE;
 	}
-
-	// temp
-	char theTitle[256] = {0};
-	GetWindowTextA(hwnd, theTitle, 256);
-	DEBUG_PRINT("title: %s\n", theTitle);
-	DEBUG_PRINT("style: %x\n", winInfo.dwExStyle);
 
 	managed[numOfManagedWindows] = hwnd;
 	numOfManagedWindows++;

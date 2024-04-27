@@ -1,5 +1,4 @@
 #include "shared_mem.h"
-#include "debug.h"
 #include "error.h"
 
 HANDLE mapHandle = NULL;

@@ -1,15 +1,8 @@
-*.dll
-*.lib
 *.obj
-*.exp
-*.exe
 *.pdb
-*.ilk
+*.lib
+*.exp
 
 tags
-
-.idea/
-.vs/
-debug/
-release/ 
-*.res
+debug
+release

@@ -1,12 +1,16 @@
 # LightWM
 
-### Minimalist Tiling Window Manager For Microsoft Windows
+### Minimalist Tiling Window Manager for Microsoft Windows
+
+Video in which I make the POC of this project: https://youtu.be/cuPirXZ6AWo
 
 ## Usage
 
 After building, run the executable ```lightwm.exe``` which will reside in the release and/or debug folder, depending on what you built.
 
 Upon running, it will immediately tile all the non-minimized windows on your screen.
+
+The program will run in the background. To quit LightWM, use ```alt+q```.
 
 You can use ```alt+j``` and ```alt+k``` to go to the next/previous window with your keyboard.
 

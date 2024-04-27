@@ -1,11 +1,13 @@
-#include <Windows.h>
-#include <signal.h>
-#include <stdlib.h>
+#include <windows.h>
 #include "tiling.h"
 #include "error.h"
+#include "config.h"
 #include "keyboard.h"
 #include "messages.h" 
 #include "shared_mem.h"
+
+#define EXIT_OK 0
+#define EXIT_FAILED 1
 
 HMODULE wmDll;
 HHOOK hookShellProcHandle;
@@ -25,14 +27,10 @@ void cleanupObjects()
 	cleanupMemoryMapFile();
 }
 
-void ctrlc(int sig)
+int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prevInstance, PWSTR cmdLine, int cmdShow)
 {
-	cleanupObjects();
-	exit(ERROR_SUCCESS);
-}
+	int exitCode = EXIT_OK;
 
-int main()
-{
     SetProcessDPIAware();
 
 	if (!initializeKeyboardConfig()) {
@@ -66,8 +64,6 @@ int main()
 		goto cleanup;
 	}
 
-	signal(SIGINT, ctrlc);
-
 	tileWindows();
 
 	MSG msg;
@@ -75,6 +71,10 @@ int main()
 	while (GetMessage(&msg, (HWND)-1, 0, 0) != 0) {
 		switch (msg.message) {
 			case WM_HOTKEY:
+				if (msg.wParam == QUIT_LIGHTWM_HOTKEY_ID) {
+					goto cleanup;
+				}
+
 				handleHotkey(msg.wParam, msg.lParam);
 				break; 
 			case LWM_WINDOW_EVENT:
@@ -83,8 +83,10 @@ int main()
 		}
 	}
 
+	exitCode = EXIT_FAILED;
+
 cleanup:
 	cleanupObjects();
 	
-	return EXIT_FAILURE;
+	return exitCode;
 }
