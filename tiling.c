@@ -54,7 +54,7 @@ void tileWindows()
 {
 	numOfManagedWindows = 0;
 
-	if (focusedWindow == 0) {
+	if (focusedWindow == NULL) {
 		EnumChildWindows(GetDesktopWindow(), EnumChildProc, 0);
 	} else {
 		managed[numOfManagedWindows] = focusedWindow;
@@ -70,8 +70,8 @@ void tileWindows()
 
 void toggleFocusedWindow(HWND hwnd)
 {
-	if (focusedWindow != 0) {
-		focusedWindow = 0;
+	if (focusedWindow != NULL) {
+		focusedWindow = NULL;
 	} else {
 		focusedWindow = hwnd;
 	}
@@ -81,6 +81,10 @@ void toggleFocusedWindow(HWND hwnd)
 
 void focusNextWindow(bool goBack)
 {
+	if (focusedWindow != NULL) {
+		toggleFocusedWindow(NULL);
+	}
+
 	currentFocusedWindowIndex += goBack ? -1 : 1;
 
 	if (currentFocusedWindowIndex < 0) {
