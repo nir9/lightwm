@@ -85,7 +85,7 @@ void focusNextWindow(bool goBack)
 
 	if (currentFocusedWindowIndex < 0) {
 		currentFocusedWindowIndex = numOfManagedWindows - 1;
-	} else if (currentFocusedWindowIndex == numOfManagedWindows) {
+	} else if (currentFocusedWindowIndex >= numOfManagedWindows) {
 		currentFocusedWindowIndex = 0;
 	}
 
