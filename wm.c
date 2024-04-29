@@ -9,27 +9,22 @@
 #define EXIT_OK 0
 #define EXIT_FAILED 1
 
-HMODULE wmDll;
-HHOOK hookShellProcHandle;
-
-void cleanupObjects()
-{
-	cleanupKeyboard();
-	
-	if (hookShellProcHandle) {
-		UnhookWindowsHookEx(hookShellProcHandle);
-	}
-	
-	if (wmDll) {
-		FreeLibrary(wmDll);
-	}
-
-	cleanupMemoryMapFile();
-}
-
 int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prevInstance, PWSTR cmdLine, int cmdShow)
 {
-	int exitCode = EXIT_OK;
+	int exitCode = EXIT_FAILED;
+
+	HMODULE wmDll;
+	HHOOK hookShellProcHandle;
+
+	HANDLE currentlyRunningMutex = CreateMutexW(NULL, TRUE, L"Global\\LightWMIsCurrentlyRunning");
+
+	if (currentlyRunningMutex == NULL) {
+		reportWin32Error(L"Failed creating currently running mutex");
+		goto cleanup;
+	} else if (GetLastError() == ERROR_ALREADY_EXISTS) {
+		reportGeneralError(L"LightWM is already running, exiting");
+		goto cleanup;
+	}
 
     SetProcessDPIAware();
 
@@ -72,6 +67,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prevInstance, PWSTR cmdLine, i
 		switch (msg.message) {
 			case WM_HOTKEY:
 				if (msg.wParam == QUIT_LIGHTWM_HOTKEY_ID) {
+					exitCode = EXIT_OK;
 					goto cleanup;
 				}
 
@@ -83,10 +79,22 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prevInstance, PWSTR cmdLine, i
 		}
 	}
 
-	exitCode = EXIT_FAILED;
-
 cleanup:
-	cleanupObjects();
+	if (currentlyRunningMutex != NULL) {
+		CloseHandle(currentlyRunningMutex);
+	}
+
+	cleanupKeyboard();
+	
+	if (hookShellProcHandle) {
+		UnhookWindowsHookEx(hookShellProcHandle);
+	}
+	
+	if (wmDll) {
+		FreeLibrary(wmDll);
+	}
+
+	cleanupMemoryMapFile();
 	
 	return exitCode;
 }
