@@ -13,16 +13,11 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
-
-      # - name: Setup Visual Studio Build Environment & Build
-      #   run: |
-      #     & "C:/Program Files/Microsoft/Visual Studio/2022/Enterprise/VC/Auxiliary/Build/vcvarsall.bat"
-
       - name: Setup Visual Studio Build Environment
         uses: ilammy/msvc-dev-cmd@v1
         
       - name: Build Executable and DLL
-        run: nmake
+        run: nmake release
 
       - name: Create Release
-        run: gh release create ${{ github.event.inputs.version }} ./lightwm.exe ./lightwm_dll.dll -n "Version ${{ github.event.inputs.version }}"
+        run: gh release create ${{ github.event.inputs.version }} ./release/lightwm.exe ./release/lightwm_dll.dll -n "Version ${{ github.event.inputs.version }}"
