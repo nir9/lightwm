@@ -6,3 +6,4 @@
 void tileWindows();
 void toggleFocusedWindow(HWND hwnd);
 void focusNextWindow(bool goBack);
+void gotoWorkspace(int number);

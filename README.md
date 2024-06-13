@@ -2,7 +2,7 @@
 
 ### Minimalist Tiling Window Manager for Microsoft Windows
 
-Video in which I make the POC of this project: https://youtu.be/cuPirXZ6AWo
+Video in which I make the PoC of this project: https://youtu.be/cuPirXZ6AWo
 
 ## Usage
 
@@ -16,6 +16,8 @@ You can use ```alt+j``` and ```alt+k``` to go to the next/previous window with y
 
 You can use ```alt+f``` hotkey to toggle focus mode which will disable tiling and put the focused window in fullscreen, pressing ```alt+f``` again will enable tiling again and tile all non-minimized windows
 
+You can use ```alt+1``` and ```alt+2``` and ```alt+3``` to go to workspace number 1, 2 and 3 respectively
+
 ## Building
 
 You can build using the "x64 Native Tools Command Prompt for VS 2022" that comes with Microsoft Visual Studio Build Tools:
@@ -26,9 +28,9 @@ In the console you can run nmake to build according to the Makefile
 
 I haven't tried building with a different VS version or building x86, but that may work as well.
 
-## Todo
+## Contributing
 
-- Add support for workspaces (maintain a list of maximized windows for each workspace)
+One of my main goals with this project is to keep it as minimal as possible, for example I decidd against using a dynamic configuration on purpose. Thus, make sure to keep the contributions as simple as possible. If you plan on adding a completely new feature, let's discuss it on the issues beforehand.
 
 ## Coding Conventions
 
@@ -69,7 +71,7 @@ Example of when a comment is necessary and has added value:
 
 #### For/while/switch/if blocks
 
-Opening braces { in the same line as the block definition
+Opening braces ```{``` in the same line as the block definition
 
 ```c
 if (cond) {
@@ -86,7 +88,7 @@ if (cond)
 
 #### Function blocks
 
-Opening braces { in a new line after the function definition
+Opening braces ```{``` in a new line after the function definition
 
 ```c
 void init()

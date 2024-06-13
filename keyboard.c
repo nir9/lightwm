@@ -4,35 +4,14 @@
 #include "error.h"
 #include "config.h"
 
-UINT getModifier(const char* value)
+UINT getKeyCode(char value)
 {
-    if (lstrcmpA(value, "alt") == 0) {
-        return MOD_ALT;
-    }
-
-    if (lstrcmpA(value, "win") == 0) {
-        return MOD_WIN;
-    }
-
-    if (lstrcmpA(value, "ctrl") == 0) {
-        return MOD_CONTROL;
-    }
-
-    if (lstrcmpA(value, "shift") == 0) {
-        return MOD_SHIFT;
-    }
-
-    return MOD_ALT;
+    return VkKeyScanEx(value, GetKeyboardLayout(0));
 }
 
-UINT getKeyCode(const char* value)
+void addKeyboardKeybind(int id, UINT keyCode)
 {
-    return VkKeyScanEx(value[lstrlenA(value) - 1], GetKeyboardLayout(0));
-}
-
-void addKeyboardKeybind(int id, UINT modifier, UINT keyCode)
-{
-    if (!RegisterHotKey(NULL, id, modifier | MOD_NOREPEAT, keyCode)) {
+    if (!RegisterHotKey(NULL, id, MOD_ALT | MOD_NOREPEAT, keyCode)) {
         reportWin32Error(L"Failed to register hotkey");
 		return;
     }
@@ -40,10 +19,13 @@ void addKeyboardKeybind(int id, UINT modifier, UINT keyCode)
 
 bool initializeKeyboardConfig()
 {
-	addKeyboardKeybind(TOGGLE_FOCUS_MODE_HOYKEY_ID, getModifier(FOCUS_MODE_HOTKEY), getKeyCode(FOCUS_MODE_HOTKEY));
-	addKeyboardKeybind(NEXT_WINDOW_HOTKEY_ID, getModifier(NEXT_WINDOW_HOTKEY), getKeyCode(NEXT_WINDOW_HOTKEY));
-	addKeyboardKeybind(PREV_WINDOW_HOTKEY_ID, getModifier(PREV_WINDOW_HOTKEY), getKeyCode(PREV_WINDOW_HOTKEY));
-	addKeyboardKeybind(QUIT_LIGHTWM_HOTKEY_ID, getModifier(QUIT_LIGHTWM_HOTKEY), getKeyCode(QUIT_LIGHTWM_HOTKEY));
+	addKeyboardKeybind(TOGGLE_FOCUS_MODE_HOYKEY_ID, getKeyCode(FOCUS_MODE_HOTKEY));
+	addKeyboardKeybind(NEXT_WINDOW_HOTKEY_ID, getKeyCode(NEXT_WINDOW_HOTKEY));
+	addKeyboardKeybind(PREV_WINDOW_HOTKEY_ID, getKeyCode(PREV_WINDOW_HOTKEY));
+	addKeyboardKeybind(QUIT_LIGHTWM_HOTKEY_ID, getKeyCode(QUIT_LIGHTWM_HOTKEY));
+	addKeyboardKeybind(WORKSPACE_1_LIGHTWM_HOTKEY_ID, getKeyCode(WORKSPACE_1_LIGHTWM_HOTKEY));
+	addKeyboardKeybind(WORKSPACE_2_LIGHTWM_HOTKEY_ID, getKeyCode(WORKSPACE_2_LIGHTWM_HOTKEY));
+	addKeyboardKeybind(WORKSPACE_3_LIGHTWM_HOTKEY_ID, getKeyCode(WORKSPACE_3_LIGHTWM_HOTKEY));
 
     return true;
 }
@@ -54,6 +36,9 @@ void cleanupKeyboard()
     UnregisterHotKey(NULL, NEXT_WINDOW_HOTKEY_ID);
     UnregisterHotKey(NULL, PREV_WINDOW_HOTKEY_ID);
     UnregisterHotKey(NULL, QUIT_LIGHTWM_HOTKEY_ID);
+    UnregisterHotKey(NULL, WORKSPACE_1_LIGHTWM_HOTKEY_ID);
+    UnregisterHotKey(NULL, WORKSPACE_2_LIGHTWM_HOTKEY_ID);
+    UnregisterHotKey(NULL, WORKSPACE_3_LIGHTWM_HOTKEY_ID);
 }
 
 void handleHotkey(WPARAM wparam, LPARAM lparam)
@@ -68,7 +53,14 @@ void handleHotkey(WPARAM wparam, LPARAM lparam)
 		case NEXT_WINDOW_HOTKEY_ID:
 			focusNextWindow(false);
 			break;
-        default:
-            break;
+		case WORKSPACE_1_LIGHTWM_HOTKEY_ID:
+			gotoWorkspace(1);
+			break;
+		case WORKSPACE_2_LIGHTWM_HOTKEY_ID:
+			gotoWorkspace(2);
+			break;
+		case WORKSPACE_3_LIGHTWM_HOTKEY_ID:
+			gotoWorkspace(3);
+			break;
     }
 }
