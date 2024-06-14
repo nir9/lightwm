@@ -2,6 +2,12 @@
 
 ### Minimalist Tiling Window Manager for Microsoft Windows
 
+Written with C and Windows API and utilizes existing Windows facilities, resulting in very slim code.
+
+Executable and DLL are very small (<20KB total)
+
+Make sure you place the DLL next to the executable, so it can find it.
+
 Video in which I make the PoC of this project: https://youtu.be/cuPirXZ6AWo
 
 ## Usage
@@ -16,7 +22,7 @@ You can use ```alt+j``` and ```alt+k``` to go to the next/previous window with y
 
 You can use ```alt+f``` hotkey to toggle focus mode which will disable tiling and put the focused window in fullscreen, pressing ```alt+f``` again will enable tiling again and tile all non-minimized windows
 
-You can use ```alt+1``` and ```alt+2``` and ```alt+3``` to go to workspace number 1, 2 and 3 respectively
+You can use ```alt+1``` up until ```alt+9``` to go to workspace number ```1``` until ```9``` respectively
 
 ## Building
 
@@ -30,7 +36,13 @@ I haven't tried building with a different VS version or building x86, but that m
 
 ## Contributing
 
-One of my main goals with this project is to keep it as minimal as possible, for example I decidd against using a dynamic configuration on purpose. Thus, make sure to keep the contributions as simple as possible. If you plan on adding a completely new feature, let's discuss it on the issues beforehand.
+One of my main goals with this project is to keep it as minimal as possible, for example I decidd against using a dynamic configuration on purpose.
+
+Thus, make sure to keep the contributions as simple as possible.
+
+If you plan on adding a completely new feature, let's discuss it on the issues beforehand.
+
+Also notice that this project does not use any C library functions on purpose, only Windows API. This keeps everything as minimal as possible.
 
 ## Coding Conventions
 

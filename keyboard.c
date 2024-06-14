@@ -23,9 +23,10 @@ bool initializeKeyboardConfig()
 	addKeyboardKeybind(NEXT_WINDOW_HOTKEY_ID, getKeyCode(NEXT_WINDOW_HOTKEY));
 	addKeyboardKeybind(PREV_WINDOW_HOTKEY_ID, getKeyCode(PREV_WINDOW_HOTKEY));
 	addKeyboardKeybind(QUIT_LIGHTWM_HOTKEY_ID, getKeyCode(QUIT_LIGHTWM_HOTKEY));
-	addKeyboardKeybind(WORKSPACE_1_LIGHTWM_HOTKEY_ID, getKeyCode(WORKSPACE_1_LIGHTWM_HOTKEY));
-	addKeyboardKeybind(WORKSPACE_2_LIGHTWM_HOTKEY_ID, getKeyCode(WORKSPACE_2_LIGHTWM_HOTKEY));
-	addKeyboardKeybind(WORKSPACE_3_LIGHTWM_HOTKEY_ID, getKeyCode(WORKSPACE_3_LIGHTWM_HOTKEY));
+	addKeyboardKeybind(FORCE_TILE_LIGHTWM_HOTKEY_ID, getKeyCode(FORCE_TILE_LIGHTWM_HOTKEY));
+	for (int i = 0; i < 9; i++) {
+		addKeyboardKeybind(WORKSPACE_LIGHTWM_HOTKEY_ID_BASE + i, getKeyCode(WORKSPACE_LIGHTWM_HOTKEY_BASE + i));
+	}
 
     return true;
 }
@@ -36,9 +37,10 @@ void cleanupKeyboard()
     UnregisterHotKey(NULL, NEXT_WINDOW_HOTKEY_ID);
     UnregisterHotKey(NULL, PREV_WINDOW_HOTKEY_ID);
     UnregisterHotKey(NULL, QUIT_LIGHTWM_HOTKEY_ID);
-    UnregisterHotKey(NULL, WORKSPACE_1_LIGHTWM_HOTKEY_ID);
-    UnregisterHotKey(NULL, WORKSPACE_2_LIGHTWM_HOTKEY_ID);
-    UnregisterHotKey(NULL, WORKSPACE_3_LIGHTWM_HOTKEY_ID);
+	UnregisterHotKey(NULL, FORCE_TILE_LIGHTWM_HOTKEY_ID);
+	for (int i = 0; i < 9; i++) {
+		UnregisterHotKey(NULL, WORKSPACE_LIGHTWM_HOTKEY_ID_BASE + i);
+	}
 }
 
 void handleHotkey(WPARAM wparam, LPARAM lparam)
@@ -53,14 +55,12 @@ void handleHotkey(WPARAM wparam, LPARAM lparam)
 		case NEXT_WINDOW_HOTKEY_ID:
 			focusNextWindow(false);
 			break;
-		case WORKSPACE_1_LIGHTWM_HOTKEY_ID:
-			gotoWorkspace(1);
-			break;
-		case WORKSPACE_2_LIGHTWM_HOTKEY_ID:
-			gotoWorkspace(2);
-			break;
-		case WORKSPACE_3_LIGHTWM_HOTKEY_ID:
-			gotoWorkspace(3);
+		case FORCE_TILE_LIGHTWM_HOTKEY_ID:
+			tileWindows();
 			break;
     }
+
+	if (wparam >= WORKSPACE_LIGHTWM_HOTKEY_ID_BASE && wparam <= (WORKSPACE_LIGHTWM_HOTKEY_ID_BASE + 8)) {
+		gotoWorkspace((int)wparam - WORKSPACE_LIGHTWM_HOTKEY_ID_BASE + 1);
+	}
 }
