@@ -6,13 +6,13 @@ HANDLE mapHandle = NULL;
 bool readOrWriteToSharedMemory(DWORD write, DWORD* read) {
 	bool succeeded = false;
 
-	mapHandle = CreateFileMapping(
+	mapHandle = CreateFileMappingW(
 		INVALID_HANDLE_VALUE,
 		NULL,
 		PAGE_READWRITE,
 		0,
 		sizeof(DWORD),
-		"LightWMThreadId"
+		L"LightWMThreadId"
 	);
 
 	if (mapHandle == NULL) {
