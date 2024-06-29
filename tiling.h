@@ -4,6 +4,6 @@
 #include <stdbool.h>
 
 void tileWindows();
-void toggleFocusedWindow(HWND hwnd);
+void toggleFullscreenMode();
 void focusNextWindow(bool goBack);
 void gotoWorkspace(int number);

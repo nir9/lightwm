@@ -7,11 +7,10 @@
 typedef struct {
 	HWND handle;
 	int workspaceNumber;
-	bool isFocused;
 	bool shouldCleanup;
 } ManagedWindow;
 
-HWND focusedWindow = 0;
+bool isFullscreen = false;
 HWND managed[MAX_MANAGED];
 ManagedWindow totalManaged[MAX_MANAGED];
 int numOfTotalManaged = 0;
@@ -89,7 +88,6 @@ BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lparam)
 	}
 
 	totalManaged[numOfTotalManaged].handle = hwnd;
-	totalManaged[numOfTotalManaged].isFocused = false;
 	totalManaged[numOfTotalManaged].workspaceNumber = currentWorkspace;
 	totalManaged[numOfTotalManaged].shouldCleanup = false;
 	numOfTotalManaged++;
@@ -101,15 +99,15 @@ void updateManagedWindows()
 {
 	numOfCurrentlyManaged = 0;
 
+	if (isFullscreen) {
+		managed[0] = GetForegroundWindow();
+		numOfCurrentlyManaged = 1;
+		return;
+	}
+
 	for (int i = 0; i < numOfTotalManaged; i++) {
 		if (totalManaged[i].workspaceNumber != currentWorkspace) {
 			continue;
-		}
-
-		if (totalManaged[i].isFocused) {
-			managed[0] = totalManaged[i].handle;
-			numOfCurrentlyManaged = 1;
-			break;
 		}
 
 		managed[numOfCurrentlyManaged] = totalManaged[i].handle;
@@ -123,7 +121,9 @@ void tileWindows()
 	if (newWorkspace) {
 		newWorkspace = false;
 	} else {
-		cleanupWorkspaceWindows();
+		if (!isFullscreen) {
+			cleanupWorkspaceWindows();
+		}
 	}
 
 	EnumChildWindows(GetDesktopWindow(), EnumChildProc, 0);
@@ -137,24 +137,17 @@ void tileWindows()
 	TileWindows(GetDesktopWindow(), MDITILE_VERTICAL | MDITILE_SKIPDISABLED, NULL, numOfCurrentlyManaged, managed);
 }
 
-void toggleFocusedWindow(HWND hwnd)
+void toggleFullscreenMode()
 {
-	if (focusedWindow != NULL) {
-		searchManaged(focusedWindow)->isFocused = false;
-		focusedWindow = NULL;
-	} else {
-		focusedWindow = hwnd;
-		searchManaged(focusedWindow)->isFocused = true;
-	}
-
+	isFullscreen = !isFullscreen;
 	newWorkspace = true;
 	tileWindows();
 }
 
 void focusNextWindow(bool goBack)
 {
-	if (focusedWindow != NULL) {
-		toggleFocusedWindow(NULL);
+	if (isFullscreen) {
+		toggleFullscreenMode();
 	}
 
 	currentFocusedWindowIndex += goBack ? -1 : 1;

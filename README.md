@@ -20,7 +20,7 @@ The program will run in the background. To quit LightWM, use ```alt+q```.
 
 You can use ```alt+j``` and ```alt+k``` to go to the next/previous window with your keyboard.
 
-You can use ```alt+f``` hotkey to toggle focus mode which will disable tiling and put the focused window in fullscreen, pressing ```alt+f``` again will enable tiling again and tile all non-minimized windows
+You can use ```alt+f``` hotkey to toggle fullscreen mode which will disable tiling and put the focused window in fullscreen, pressing ```alt+f``` again will enable tiling again and tile all non-minimized windows
 
 You can use ```alt+1``` up until ```alt+9``` to go to workspace number ```1``` until ```9``` respectively
 

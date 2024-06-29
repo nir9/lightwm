@@ -19,7 +19,7 @@ void addKeyboardKeybind(int id, UINT keyCode)
 
 bool initializeKeyboardConfig()
 {
-	addKeyboardKeybind(TOGGLE_FOCUS_MODE_HOYKEY_ID, getKeyCode(FOCUS_MODE_HOTKEY));
+	addKeyboardKeybind(TOGGLE_FULLSCREEN_MODE_HOYKEY_ID, getKeyCode(FULLSCREEN_MODE_HOTKEY));
 	addKeyboardKeybind(NEXT_WINDOW_HOTKEY_ID, getKeyCode(NEXT_WINDOW_HOTKEY));
 	addKeyboardKeybind(PREV_WINDOW_HOTKEY_ID, getKeyCode(PREV_WINDOW_HOTKEY));
 	addKeyboardKeybind(QUIT_LIGHTWM_HOTKEY_ID, getKeyCode(QUIT_LIGHTWM_HOTKEY));
@@ -33,7 +33,7 @@ bool initializeKeyboardConfig()
 
 void cleanupKeyboard()
 {
-    UnregisterHotKey(NULL, TOGGLE_FOCUS_MODE_HOYKEY_ID);
+    UnregisterHotKey(NULL, TOGGLE_FULLSCREEN_MODE_HOYKEY_ID);
     UnregisterHotKey(NULL, NEXT_WINDOW_HOTKEY_ID);
     UnregisterHotKey(NULL, PREV_WINDOW_HOTKEY_ID);
     UnregisterHotKey(NULL, QUIT_LIGHTWM_HOTKEY_ID);
@@ -46,8 +46,8 @@ void cleanupKeyboard()
 void handleHotkey(WPARAM wparam, LPARAM lparam)
 {
     switch (wparam) {
-		case TOGGLE_FOCUS_MODE_HOYKEY_ID:
-			toggleFocusedWindow(GetForegroundWindow());
+		case TOGGLE_FULLSCREEN_MODE_HOYKEY_ID:
+			toggleFullscreenMode();
 			break;
 		case PREV_WINDOW_HOTKEY_ID:
 			focusNextWindow(true);
