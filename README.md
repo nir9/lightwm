@@ -36,7 +36,7 @@ I haven't tried building with a different VS version or building x86, but that m
 
 ## Contributing
 
-One of my main goals with this project is to keep it as minimal as possible, for example I decidd against using a dynamic configuration on purpose.
+One of my main goals with this project is to keep it as minimal as possible, for example I decided against using a dynamic configuration on purpose.
 
 Thus, make sure to keep the contributions as simple as possible.
 
