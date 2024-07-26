@@ -7,3 +7,4 @@ void tileWindows();
 void toggleFullscreenMode();
 void focusNextWindow(bool goBack);
 void gotoWorkspace(int number);
+void moveWindowToWorkspace(int workspaceNumber);
