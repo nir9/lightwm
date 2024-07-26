@@ -65,9 +65,6 @@ void handleHotkey(WPARAM wparam, LPARAM lparam)
         case FORCE_TILE_LIGHTWM_HOTKEY_ID:
             tileWindows();
             break;
-        case QUIT_LIGHTWM_HOTKEY_ID:
-            // Add your code to quit lightwm
-            break;
     }
 
     if (wparam >= WORKSPACE_LIGHTWM_HOTKEY_ID_BASE && wparam < WORKSPACE_LIGHTWM_HOTKEY_ID_BASE + 9) {
