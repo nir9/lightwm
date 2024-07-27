@@ -171,3 +171,16 @@ void gotoWorkspace(int number)
 	newWorkspace = true;
 	tileWindows();
 }
+
+void moveWindowToWorkspace(int workspaceNumber) {
+    if (numOfCurrentlyManaged == 0) {
+        return;
+    }
+
+    HWND focusedWindow = managed[currentFocusedWindowIndex];
+    ManagedWindow* mw = searchManaged(focusedWindow);
+    if (mw != NULL) {
+        mw->workspaceNumber = workspaceNumber;
+        gotoWorkspace(currentWorkspace);
+    }
+}
