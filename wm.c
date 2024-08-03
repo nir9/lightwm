@@ -26,7 +26,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prevInstance, PWSTR cmdLine, i
 		goto cleanup;
 	}
 
-    SetProcessDPIAware();
+	SetProcessDPIAware();
 
 	if (!initializeKeyboardConfig()) {
 		reportGeneralError(L"Setup keyboard config"); 

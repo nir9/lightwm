@@ -46,6 +46,10 @@ Also notice that this project does not use any C library functions on purpose, o
 
 ## Coding Conventions
 
+#### Spacing
+
+Tabs > Spaces
+
 #### Function and variable names
 
 Functions and variables should be in camelCase
@@ -81,7 +85,7 @@ Example of when a comment is necessary and has added value:
 
 ```int*``` and not ```int *```
 
-#### For/while/switch/if blocks
+#### for/while/switch/if blocks
 
 Opening braces ```{``` in the same line as the block definition
 
@@ -97,6 +101,10 @@ if (cond)
 {
 }
 ```
+
+Space between the block name and the brackets
+
+```if (statement)``` and not ```if(statement)```
 
 #### Function blocks
 
@@ -114,9 +122,3 @@ and not:
 void init() {
 }
 ```
-
-#### For/while/switch/if blocks
-
-Space between the block name and the brackets
-
-```if (statement)``` and not ```if(statement)```

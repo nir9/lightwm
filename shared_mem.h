@@ -6,4 +6,3 @@
 bool retrieveDwordFromSharedMemory(DWORD* output);
 bool storeDwordInSharedMemory(DWORD input);
 void cleanupMemoryMapFile();
-
