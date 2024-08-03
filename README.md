@@ -24,6 +24,8 @@ You can use ```alt+f``` hotkey to toggle fullscreen mode which will disable tili
 
 You can use ```alt+1``` up until ```alt+9``` to go to workspace number ```1``` until ```9``` respectively
 
+You can move the current focused window to a different workspace number by adding ```shift``` to the above command.
+
 ## Building
 
 You can build using the "x64 Native Tools Command Prompt for VS 2022" that comes with Microsoft Visual Studio Build Tools:

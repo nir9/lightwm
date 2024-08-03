@@ -177,10 +177,11 @@ void moveWindowToWorkspace(int workspaceNumber) {
 		return;
 	}
 
-	HWND focusedWindow = managed[currentFocusedWindowIndex];
-	ManagedWindow* mw = searchManaged(focusedWindow);
-	if (mw != NULL) {
-		mw->workspaceNumber = workspaceNumber;
-		gotoWorkspace(currentWorkspace);
+	ManagedWindow* mw = searchManaged(GetForegroundWindow());
+	if (mw == NULL) {
+		return;
 	}
+
+	mw->workspaceNumber = workspaceNumber;
+	gotoWorkspace(currentWorkspace);
 }
