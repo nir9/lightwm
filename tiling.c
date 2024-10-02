@@ -163,6 +163,13 @@ void focusNextWindow(bool goBack)
 
 void gotoWorkspace(int number)
 {
+	if (isFullscreen) {
+		isFullscreen = !isFullscreen;
+		newWorkspace = true;
+	}
+
+	tileWindows();
+
 	for (int i = 0; i < numOfCurrentlyManaged; i++) {
 		CloseWindow(managed[i]);
 	}
@@ -172,7 +179,8 @@ void gotoWorkspace(int number)
 	tileWindows();
 }
 
-void moveWindowToWorkspace(int workspaceNumber) {
+void moveWindowToWorkspace(int workspaceNumber)
+{
 	if (numOfCurrentlyManaged == 0) {
 		return;
 	}
