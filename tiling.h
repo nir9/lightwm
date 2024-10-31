@@ -5,6 +5,6 @@
 
 void tileWindows();
 void toggleFullscreenMode();
-void focusNextWindow(bool goBack);
-void gotoWorkspace(int number);
-void moveWindowToWorkspace(int workspaceNumber);
+void focusNextWindow(bool, unsigned int);
+void gotoWorkspace(int);
+void moveWindowToWorkspace(int);

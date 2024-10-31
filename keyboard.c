@@ -57,10 +57,10 @@ void handleHotkey(WPARAM wparam, LPARAM lparam)
 			toggleFullscreenMode();
 			break;
 		case NEXT_WINDOW_HOTKEY_ID:
-			focusNextWindow(false);
+			focusNextWindow(false, 0);
 			break;
 		case PREV_WINDOW_HOTKEY_ID:
-			focusNextWindow(true);
+			focusNextWindow(true, 0);
 			break;
 		case FORCE_TILE_LIGHTWM_HOTKEY_ID:
 			tileWindows();

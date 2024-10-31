@@ -45,49 +45,58 @@ void cleanupWorkspaceWindows()
 	numOfTotalManaged = keepCounter;
 }
 
-BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lparam)
+BOOL isWindowManagable(HWND windowHandle)
+{
+	if (!IsWindowVisible(windowHandle) || IsHungAppWindow(windowHandle)) {
+		return FALSE;
+	}
+
+	WINDOWINFO winInfo;
+	winInfo.cbSize = sizeof(WINDOWINFO);
+	if (!GetWindowInfo(windowHandle, &winInfo)) {
+		return FALSE;
+	}
+
+	if (winInfo.dwStyle & WS_POPUP) {
+		return FALSE;
+	}
+
+	if (!(winInfo.dwExStyle & 0x20000000)) {
+		return FALSE;
+	}
+
+	if (GetWindowTextLengthW(windowHandle) == 0) {
+		return FALSE;
+	}
+
+	RECT clientRect;
+	if (!GetClientRect(windowHandle, &clientRect)) {
+		return FALSE;
+	}
+
+	// Skip small windows to avoid bugs
+	if (clientRect.right < 100 || clientRect.bottom < 100){
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+BOOL CALLBACK windowEnumeratorCallback(HWND currentWindowHandle, LPARAM lparam)
 {
 	if (numOfTotalManaged > MAX_MANAGED) {
 		return FALSE;
 	}
 
-	if (!IsWindowVisible(hwnd) || IsHungAppWindow(hwnd)) {
+	if (!isWindowManagable(currentWindowHandle)) {
 		return TRUE;
 	}
 
-	WINDOWINFO winInfo;
-	winInfo.cbSize = sizeof(WINDOWINFO);
-	if (!GetWindowInfo(hwnd, &winInfo)) {
+	if (searchManaged(currentWindowHandle) != NULL) {
 		return TRUE;
 	}
 
-	if (winInfo.dwStyle & WS_POPUP) {
-		return TRUE;
-	}
-
-	if (!(winInfo.dwExStyle & 0x20000000)) {
-		return TRUE;
-	}
-
-	if (GetWindowTextLengthW(hwnd) == 0) {
-		return TRUE;
-	}
-
-	RECT clientRect;
-	if (!GetClientRect(hwnd, &clientRect)) {
-		return TRUE;
-	}
-
-	// Skip small windows to avoid bugs
-	if (clientRect.right < 100 || clientRect.bottom < 100){
-		return TRUE;
-	}
-
-	if (searchManaged(hwnd) != NULL) {
-		return TRUE;
-	}
-
-	totalManaged[numOfTotalManaged].handle = hwnd;
+	totalManaged[numOfTotalManaged].handle = currentWindowHandle;
 	totalManaged[numOfTotalManaged].workspaceNumber = currentWorkspace;
 	totalManaged[numOfTotalManaged].shouldCleanup = false;
 	numOfTotalManaged++;
@@ -126,7 +135,7 @@ void tileWindows()
 		}
 	}
 
-	EnumChildWindows(GetDesktopWindow(), EnumChildProc, 0);
+	EnumChildWindows(GetDesktopWindow(), windowEnumeratorCallback, 0);
 
 	if (numOfTotalManaged == 0) {
 		return;
@@ -144,8 +153,14 @@ void toggleFullscreenMode()
 	tileWindows();
 }
 
-void focusNextWindow(bool goBack)
+void focusNextWindow(bool goBack, unsigned int callCount)
 {
+	// Avoid infinite recursion
+	if (callCount > 25) {
+		tileWindows();
+		return;
+	}
+
 	if (isFullscreen) {
 		toggleFullscreenMode();
 	}
@@ -156,6 +171,10 @@ void focusNextWindow(bool goBack)
 		currentFocusedWindowIndex = numOfCurrentlyManaged - 1;
 	} else if (currentFocusedWindowIndex >= numOfCurrentlyManaged) {
 		currentFocusedWindowIndex = 0;
+	}
+
+	if (!isWindowManagable(managed[currentFocusedWindowIndex]) || (GetForegroundWindow() == managed[currentFocusedWindowIndex])) {
+		focusNextWindow(goBack, ++callCount);
 	}
 
 	SwitchToThisWindow(managed[currentFocusedWindowIndex], FALSE);
