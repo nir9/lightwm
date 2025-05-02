@@ -26,6 +26,8 @@ You can use ```alt+1``` up until ```alt+9``` to go to workspace number ```1``` u
 
 You can move the current focused window to a different workspace number by adding ```shift``` to the above command.
 
+You can "force" retile by using ```alt+t```, you can use this as a trick to send the current focused window to the left.
+
 ## Building
 
 You can build using the "x64 Native Tools Command Prompt for VS 2022" that comes with Microsoft Visual Studio Build Tools:
