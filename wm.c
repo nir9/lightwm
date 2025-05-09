@@ -66,7 +66,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE prevInstance, PWSTR cmdLine, i
 	while (GetMessage(&msg, (HWND)-1, 0, 0) != 0) {
 		switch (msg.message) {
 			case WM_HOTKEY:
-				if (msg.wParam == QUIT_LIGHTWM_HOTKEY_ID) {
+				if (msg.wParam == QUIT_HOTKEY_ID) {
 					exitCode = EXIT_OK;
 					goto cleanup;
 				}

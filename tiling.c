@@ -11,6 +11,7 @@ typedef struct {
 } ManagedWindow;
 
 bool isFullscreen = false;
+bool isTilingEnabled = true;
 HWND managed[MAX_MANAGED];
 ManagedWindow totalManaged[MAX_MANAGED];
 int numOfTotalManaged = 0;
@@ -127,6 +128,10 @@ void updateManagedWindows()
 
 void tileWindows()
 {
+	if (!isTilingEnabled) {
+		return;
+	}
+
 	if (newWorkspace) {
 		newWorkspace = false;
 	} else {
@@ -212,4 +217,12 @@ void moveWindowToWorkspace(int workspaceNumber)
 	CloseWindow(managedWindow->handle);
 	managedWindow->workspaceNumber = workspaceNumber;
 	tileWindows();
+}
+
+void toggleDisableEnableTiling() {
+	isTilingEnabled = !isTilingEnabled;
+
+	if (isTilingEnabled) {
+		tileWindows();
+	}
 }

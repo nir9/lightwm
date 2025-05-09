@@ -14,19 +14,20 @@ Video in which I make the PoC of this project: https://youtu.be/cuPirXZ6AWo
 
 After building, run the executable ```lightwm.exe``` which will reside in the release and/or debug folder, depending on what you built.
 
-Upon running, it will immediately tile all the non-minimized windows on your screen.
+Upon running, it will immediately tile all the non-minimized windows on your screen. The program will run in the background.
 
-The program will run in the background. To quit LightWM, use ```alt+q```.
+If you want to configure it to run when you login, you can use the `Run` utility and type `shell:startup`, then create a LightWM shortcut in that folder.
 
-You can use ```alt+j``` and ```alt+k``` to go to the next/previous window with your keyboard.
+### Hotkeys
 
-You can use ```alt+f``` hotkey to toggle fullscreen mode which will disable tiling and put the focused window in fullscreen, pressing ```alt+f``` again will enable tiling again and tile all non-minimized windows
-
-You can use ```alt+1``` up until ```alt+9``` to go to workspace number ```1``` until ```9``` respectively
-
-You can move the current focused window to a different workspace number by adding ```shift``` to the above command.
-
-You can "force" retile by using ```alt+t```, you can use this as a trick to send the current focused window to the left.
+- ```alt+q``` - quit LightWM
+- ```alt+j``` - focus on next window
+- ```alt+k``` - focus on previous window
+- ```alt+f``` - toggle fullscreen mode (disables tiling and puts the focused window in fullscreen, pressing ```alt+f``` again will enable tiling again and tile all non-minimized windows)
+- ```alt+1``` up until ```alt+9``` - go to workspace number ```1``` until ```9``` respectively
+- You can move the current focused window to a different workspace number by adding ```shift``` to the above command.
+- You can "force" retile by using ```alt+t```, you can use this as a trick to send the current focused window to the left.
+- `alt+\` toggles whether the automatic tiling is enabled/disabled. This is useful if you also use programs which don't play well with LightWM automatic tiling
 
 ## Building
 

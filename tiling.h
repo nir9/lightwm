@@ -8,3 +8,4 @@ void toggleFullscreenMode();
 void focusNextWindow(bool, unsigned int);
 void gotoWorkspace(int);
 void moveWindowToWorkspace(int);
+void toggleDisableEnableTiling();
